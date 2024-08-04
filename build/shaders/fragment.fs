@@ -65,10 +65,18 @@ vec3 BRDF_PBR(vec3 albedo, vec3 specularTint, float oneMinusReflectivity, float 
     return color;
 }
 
-Light CreateLight (vec3 dir, vec3 lightVec, vec3 color) {
+Light CreateDirLight(vec3 dir, vec3 color) {
     Light light;
     light.dir = normalize(dir);
+    light.color = color;
+    return light;
+}
+
+Light CreatePointLight(vec3 pos, vec3 color) {
+    vec3 lightVec = _pointlight0_pos - i.worldPos;
     float attenuation = 1 / (1 + dot(lightVec, lightVec));
+    Light light;
+    light.dir = normalize(lightVec);
     light.color = color * attenuation;
     return light;
 }
@@ -88,9 +96,9 @@ void main() {
     vec3 reflectDir = reflect(-viewDir, normal);
 
     // Apply light
-    Light light = CreateLight(_pointlight0_pos - i.worldPos, _pointlight0_pos - i.worldPos, _pointlight0_color);
+    Light light = CreatePointLight(_pointlight0_pos, _pointlight0_color);
     vec3 color = BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light);
-    light = CreateLight(_dirlight0_dir, vec3(0f, 0f, 0f), _dirlight0_color);
+    light = CreateDirLight(_dirlight0_dir, _dirlight0_color);
     color += BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light)
              * (1.0 - CalculateShadow(i.shadowCoords, normal, light.dir));
     
