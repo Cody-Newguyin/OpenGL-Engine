@@ -110,6 +110,9 @@ int main(int, char**){
     guiHandler.Initialize(window, &engine);
     guiHandler.material = &testMaterial;
 
+    engine.ShadowCapture();
+    //scene.background->SetEnvMap(engine.shadowCubeMaps[0]);
+
     // main loop
     while(!glfwWindowShouldClose(window)) {
         // Polls os-events (inputs), update window state, callback functions

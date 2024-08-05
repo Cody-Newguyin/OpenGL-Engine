@@ -6,24 +6,26 @@ Shader::Shader() {
 
 }
 
-void Shader::Initialize(std::string vertexFilename, std::string fragmentFilename) {
+void Shader::Initialize(std::string vertexFilename, std::string fragmentFilename, std::string geometryFilename) {
     this->vertexFilename = vertexFilename;
     this->fragmentFilename = fragmentFilename;
 
     // Read in shader code
     std::string vertexCode = ReadShader(vertexFilename, "SHADER::Vertex");
     std::string fragmentCode = ReadShader(fragmentFilename, "SHADER::Fragment");
+    std::string geometryCode;
 
     // Convert code into c-strings
     const char* vertexShaderSource = vertexCode.c_str();
     const char* fragmentShaderSource = fragmentCode.c_str();
+    const char* geometryShaderSource;
 
     int success;
     char infoLog[512];
+    
     // Create, attach source to shader, and compile for vertex and fragment shader
     vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
     glShaderSource(vertexShaderID, 1, &vertexShaderSource, NULL);
     glShaderSource(fragmentShaderID, 1, &fragmentShaderSource, NULL);
     
@@ -43,15 +45,36 @@ void Shader::Initialize(std::string vertexFilename, std::string fragmentFilename
         LOG_ERROR("SHADER::Fragment(" + fragmentFilename + ")\n" + infoLog);
     }
 
+    // Do all the above for geometry shader if supplied
+    if (!geometryFilename.empty()) {
+        geometryCode = ReadShader(geometryFilename, "SHADER::GEOMETRY");
+        geometryShaderSource = geometryCode.c_str();
+        geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
+        glShaderSource(geometryShaderID, 1, &geometryShaderSource, NULL);
+        glCompileShader(geometryShaderID);
+        glGetShaderiv(geometryShaderID, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(geometryShaderID, 1024, NULL, infoLog);
+            LOG_ERROR("SHADER::GEOMETRY( " + geometryFilename + ")\n" + infoLog);
+        }
+    }
+
     // Create, attach, and link shaders to program
     programID = glCreateProgram();
     glAttachShader(programID, vertexShaderID);
     glAttachShader(programID, fragmentShaderID);
+    if (!geometryFilename.empty()) {
+        glAttachShader(programID, geometryShaderID);
+    }
     glLinkProgram(programID);
 
     // Discard individual shaders
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);
+    if (!geometryFilename.empty()) {
+        glDeleteShader(geometryShaderID);
+    }
 
     glEnable(GL_DEPTH_TEST);  
 }

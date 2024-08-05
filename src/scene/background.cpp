@@ -30,6 +30,7 @@ Background::Background() {
 
     SetName("background");
 }
+
 void Background::SetEnvMap(TextureCube* envMap) {
     this->envMap = envMap;
     material->SetTextureCube("_envMap", envMap);

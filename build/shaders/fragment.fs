@@ -16,10 +16,16 @@ uniform vec3 _dirlight0_color;
 uniform vec3 _pointlight0_pos;
 uniform vec3 _pointlight0_color;
 uniform vec3 _camPos;
+
+// PBR stuff
 uniform samplerCube _irrMap;
 uniform samplerCube _prefilterMap;
 uniform sampler2D _brdfLUT;
+
+// Shadow stuff
 uniform sampler2D _shadowMap0;
+uniform samplerCube _shadowCubeMap0;
+uniform float _farPlane = 25.0f;
 
 uniform float _smoothness = 0.1f;
 uniform float _metallic = 0.0f;
@@ -31,7 +37,7 @@ struct Light {
     vec3 dir;
 };
 
-float CalculateShadow(vec4 shadowCoords, vec3 normal, vec3 lightDir) {
+float CalculateDirShadow(vec4 shadowCoords, vec3 normal, vec3 lightDir) {
     vec3 coords = shadowCoords.xyz / shadowCoords.w;
     coords = coords * 0.5 + 0.5;
     float closeDepth = texture(_shadowMap0, coords.xy).r;
@@ -40,6 +46,20 @@ float CalculateShadow(vec4 shadowCoords, vec3 normal, vec3 lightDir) {
     float shadow = currentDepth - bias > closeDepth ? 1.0 : 0.0;
     return shadow;
 }
+
+float CalculatePointShadow(vec3 lightPos) {
+    vec3 lightVec = i.worldPos - lightPos;
+
+    float closeDepth = texture(_shadowCubeMap0, lightVec).r;
+    closeDepth *= _farPlane;
+
+    float currentDepth = length(lightVec);
+
+    float bias = 0.05; 
+    float shadow = currentDepth -  bias > closeDepth ? 1.0 : 0.0;
+
+    return shadow;
+}  
 
 vec3 BRDF_PBR(vec3 albedo, vec3 specularTint, float oneMinusReflectivity, float smoothness, vec3 normal, vec3 viewDir, Light light) {
     float roughness = 1 - smoothness;
@@ -74,7 +94,7 @@ Light CreateDirLight(vec3 dir, vec3 color) {
 
 Light CreatePointLight(vec3 pos, vec3 color) {
     vec3 lightVec = _pointlight0_pos - i.worldPos;
-    float attenuation = 1 / (1 + dot(lightVec, lightVec));
+    float attenuation = 1 / (1 + length(lightVec));
     Light light;
     light.dir = normalize(lightVec);
     light.color = color * attenuation;
@@ -97,10 +117,11 @@ void main() {
 
     // Apply light
     Light light = CreatePointLight(_pointlight0_pos, _pointlight0_color);
-    vec3 color = BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light);
+    vec3 color = BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light)
+                * (1.0 - CalculatePointShadow(_pointlight0_pos));
     light = CreateDirLight(_dirlight0_dir, _dirlight0_color);
     color += BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light)
-             * (1.0 - CalculateShadow(i.shadowCoords, normal, light.dir));
+            * (1.0 - CalculateDirShadow(i.shadowCoords, normal, light.dir));
     
     // Apply ambient lighting from background
     vec3 F = FresnelSchlickRoughness(DotClamped(normal, viewDir), specularTint, roughness);
@@ -113,11 +134,13 @@ void main() {
     vec3 prefilteredColor = textureLod(_prefilterMap, reflectDir, roughness * MAX_LOD).rgb;
     vec2 brdf = texture(_brdfLUT, vec2(DotClamped(normal, viewDir), roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-    vec3 ambient = (kD * diffuse + specular) * 0.2;
+    vec3 ambient = (kD * diffuse + specular) * 0.1;
     color += ambient;
-
-    float depth = texture(_shadowMap0, i.uv).r;
 
     color = pow(color, vec3(1.0 / GAMMA));  
     FragColor = vec4(color, 1.0);
+
+    float closeDepth = texture(_shadowCubeMap0, i.worldPos - _pointlight0_pos).r;
+    // closeDepth *= _farPlane;
+    // FragColor = vec4(vec3(closeDepth), 1.0);  
 }

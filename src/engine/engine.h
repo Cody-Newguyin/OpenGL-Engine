@@ -21,15 +21,18 @@ class Engine {
     Scene* scene;
     Camera camera;
 
-    // PBR Samples
+    // PBR samples
     TextureCube* irrMap;
     TextureCube* prefilterMap;
     Texture* brdfLUTTexture;
 
-    // Shadow shit
+    // Shadow samples
     Shader* shadowShader;
+    Shader* shadowPointShader;
     unsigned int depthMapsFBO[4];
     std::vector<Texture*> shadowMaps;
+    unsigned int depthCubeMapsFBO[4];
+    std::vector<TextureCube*> shadowCubeMaps;
 
     // render settings
     bool wireframe = false;
@@ -39,13 +42,13 @@ class Engine {
     Engine();
     void Initialize(GLFWwindow* window, Scene* scene);
     void Render();
-    
+    void ShadowCapture();
+
     private:
     unsigned int captureFBO;
     unsigned int captureRBO;
     std::vector<SceneObject*> meshObjects;
     
-
     private:
     void UpdateGlobalUniforms(Shader* shader);
     void RenderScene();
@@ -53,7 +56,7 @@ class Engine {
     void ClearBuffers();
     void RenderObject(SceneObject* object);
     void RenderMesh(Mesh* mesh);
-    void ShadowCapture();
+    
     void PBRcapture();
     void Render2Texture(SceneObject* object, Texture* target);
     void Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned int mipLevel);

@@ -9,13 +9,13 @@
 
 class Shader {
     public:
-    unsigned int programID, vertexShaderID, fragmentShaderID;
+    unsigned int programID, vertexShaderID, fragmentShaderID, geometryShaderID;
     std::string vertexFilename;
     std::string fragmentFilename;
 
     public:
     Shader();
-    void Initialize(std::string vertexFilename, std::string fragmentFilename);
+    void Initialize(std::string vertexFilename, std::string fragmentFilename, std::string geometryFilename = "");
     void Use();
     void Unload();
 

@@ -17,7 +17,8 @@ class SceneObject {
     // Render information
     Mesh *mesh = NULL;
     Material *material = NULL;
-
+    bool shadowCast = true;
+    
     // Transform information
     glm::mat4 transform = glm::mat4(1.0f);
     glm::vec3 position = glm::vec3(0.0f);

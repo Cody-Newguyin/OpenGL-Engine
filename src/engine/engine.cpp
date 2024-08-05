@@ -20,7 +20,7 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
     scene->background = new Background();
     PBRcapture();
     
-    // Shadow shit
+    // Shadow set up
     shadowShader = new Shader();
     shadowShader->Initialize("shaders/shadow_cast.vs", "shaders/shadow_cast.fs");
     for (unsigned int i = 0; i < 4; i++) {
@@ -35,6 +35,27 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    shadowPointShader = new Shader();
+    shadowPointShader->Initialize("shaders/point_shadow_cast.vs", "shaders/point_shadow_cast.fs", "shaders/point_shadow_cast.gs");
+    for (unsigned int i = 0; i < 4; i++) {
+        glGenFramebuffers(1, &depthCubeMapsFBO[i]);
+
+        TextureCube* shadowCubeMap = new TextureCube();
+        shadowCubeMap->mipmapEnabled = false;
+        shadowCubeMap->filterMin = GL_NEAREST;
+        shadowCubeMap->filterMax = GL_NEAREST;
+        shadowCubeMap->wrapS = GL_CLAMP_TO_EDGE;
+        shadowCubeMap->wrapT = GL_CLAMP_TO_EDGE;
+        shadowCubeMap->DefaultTextureCube(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+        shadowCubeMaps.push_back(shadowCubeMap);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapsFBO[i]);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowCubeMap->ID, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);  
     }
 }
 
@@ -124,6 +145,9 @@ void Engine::RenderObject(SceneObject* object) {
     shadowMaps[0]->Bind(++unit);
     shader->SetMatrix("_lightSpaceMatrix", scene->dirLights[0]->spaceMatrix);
 
+    shader->SetInt("_shadowCubeMap0", shadowCubeMaps[0]->ID);
+    shadowCubeMaps[0]->Bind(++unit);
+
     // Update shader matrices to apply _transformations
     shader->SetMatrix("_transform", object->transform);
     shader->SetMatrix("_projection", camera.projection);
@@ -152,13 +176,13 @@ void Engine::RenderMesh(Mesh* mesh) {
 
 void Engine::ShadowCapture() {
     LightObject *light;
-    glm::mat4 lightProjection, lightView, lightSpaceMatrix;
+    glm::mat4 lightProjection, lightView, lightSpaceMatrix, shadowProjection;
+    glm::mat4 shadowMatrices[6];
     lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -15.0f, 20.0f);
 
     for (int i = 0; i < scene->dirLights.size() && i < 4; i++) {
         light = scene->dirLights[i];
 
-        //LOG_GLM(light->direction * 5.0f);
         lightView = glm::lookAt(light->direction * 5.0f, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         lightSpaceMatrix = lightProjection * lightView;
         light->spaceMatrix = lightSpaceMatrix;
@@ -169,9 +193,40 @@ void Engine::ShadowCapture() {
 
         shadowShader->Use();
         shadowShader->SetMatrix("_lightSpaceMatrix", lightSpaceMatrix);
-        for (unsigned int i = 0; i < meshObjects.size(); i++) {
-            shadowShader->SetMatrix("_transform", meshObjects[i]->transform);
-            RenderMesh(meshObjects[i]->mesh);
+        for (unsigned int j = 0; j < meshObjects.size(); j++) {
+            if (meshObjects[j]->shadowCast) {
+                shadowShader->SetMatrix("_transform", meshObjects[j]->transform);
+                RenderMesh(meshObjects[j]->mesh);
+            }
+        }
+    }
+
+    for (int i = 0; i < scene->pointLights.size() && i < 4; i++) {
+        light = scene->pointLights[i];
+
+        shadowProjection = glm::perspective(glm::radians(90.0f), (float)shadowCubeMaps[i]->width / (float)shadowCubeMaps[i]->height, 1.0f, 25.0f);
+        shadowMatrices[0] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0));
+        shadowMatrices[1] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0));
+        shadowMatrices[2] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0));
+        shadowMatrices[3] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0,-1.0, 0.0), glm::vec3(0.0, 0.0,-1.0));
+        shadowMatrices[4] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 0.0, 1.0), glm::vec3(0.0,-1.0, 0.0));
+        shadowMatrices[5] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0,-1.0, 0.0));
+
+        glViewport(0, 0, shadowCubeMaps[i]->width, shadowCubeMaps[i]->height);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapsFBO[i]);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        shadowPointShader->Use();
+        for (unsigned int j = 0; j < 6; j++) {
+            shadowPointShader->SetMatrix("_shadowMatrices[" + std::to_string(j) + "]", shadowMatrices[j]);
+        } 
+        shadowPointShader->SetFloat("_farPlane", 25.0f);
+        shadowPointShader->SetVector("_pointlight0_pos", light->worldPos);
+        for (unsigned int j = 0; j < meshObjects.size(); j++) {
+            if (meshObjects[j]->shadowCast) {
+                shadowPointShader->SetMatrix("_transform", meshObjects[j]->transform);
+                RenderMesh(meshObjects[j]->mesh);
+            }
         }
     }
 
@@ -238,7 +293,9 @@ void Engine::Render2Texture(SceneObject* object, Texture* target) {
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, target->width, target->height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
+    // resize buffer
     glViewport(0, 0, target->width, target->height);
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
 
@@ -282,7 +339,9 @@ void Engine::Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned 
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
+    // resize buffer
     glViewport(0, 0, width, height);
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
 

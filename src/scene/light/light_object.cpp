@@ -3,6 +3,7 @@
 
 LightObject::LightObject(LIGHT_TYPE type) {
     this->type = type;
+    this->shadowCast = false;
     UpdateTransform();
 }
 
