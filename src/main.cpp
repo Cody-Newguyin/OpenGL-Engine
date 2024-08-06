@@ -92,7 +92,7 @@ int main(int, char**){
     
     // Create lights
     LightObject pointLight0 = LightObject(LIGHT_TYPE_POINT);
-    pointLight0.position = glm::vec3(1.0f, 3.0f, 0.0f);
+    pointLight0.position = glm::vec3(1.0f, 0.0f, 0.0f);
     pointLight0.SetMesh(&sphere);
     pointLight0.SetMaterial(&lightMaterial);
     pointLight0.SetName("PointLight 1");
