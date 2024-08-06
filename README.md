@@ -5,6 +5,8 @@ README
 
 An OpenGL graphics engine largely based on Joey de Vries' [Learn OpenGL tutorial](https://learnopengl.com/) and Jasper Flick's [Catlike Coding tutorials](https://catlikecoding.com/). 
 
+![Demo](demo.gif)
+
 ## Features
 - Logging utility using the [spdlog library](https://github.com/gabime/spdlog)
 - Material/shader pipeline
