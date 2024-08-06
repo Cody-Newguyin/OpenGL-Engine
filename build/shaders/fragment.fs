@@ -117,8 +117,7 @@ void main() {
 
     // Apply light
     Light light = CreatePointLight(_pointlight0_pos, _pointlight0_color);
-    vec3 color = BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light)
-                * (1.0 - CalculatePointShadow(_pointlight0_pos));
+    vec3 color = BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light);
     light = CreateDirLight(_dirlight0_dir, _dirlight0_color);
     color += BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light)
             * (1.0 - CalculateDirShadow(i.shadowCoords, normal, light.dir));
@@ -140,7 +139,7 @@ void main() {
     color = pow(color, vec3(1.0 / GAMMA));  
     FragColor = vec4(color, 1.0);
 
-    float closeDepth = texture(_shadowCubeMap0, i.worldPos - _pointlight0_pos).r;
-    // closeDepth *= _farPlane;
-    // FragColor = vec4(vec3(closeDepth), 1.0);  
+    vec3 test = texture(_shadowCubeMap0, normalize(i.worldPos - _pointlight0_pos)).rgb;
+    float closeDepth = texture(_shadowCubeMap0, normalize(i.worldPos - _pointlight0_pos)).r;
+    FragColor = vec4(test, 1.0);
 }

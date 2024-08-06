@@ -3,6 +3,7 @@
 #include "mesh/cube.h"
 #include "mesh/quad.h"
 #include "engine.h"
+#include <cfloat>
 
 Engine::Engine() {
     camera = Camera();
@@ -38,23 +39,27 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
     }
 
     shadowPointShader = new Shader();
-    shadowPointShader->Initialize("shaders/point_shadow_cast.vs", "shaders/point_shadow_cast.fs", "shaders/point_shadow_cast.gs");
+    shadowPointShader->Initialize("shaders/point_shadow_cast.vs", "shaders/point_shadow_cast.fs");
+
     for (unsigned int i = 0; i < 4; i++) {
         glGenFramebuffers(1, &depthCubeMapsFBO[i]);
 
+        Texture* depthMap = new Texture();
+        depthMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT32);
+        depthMaps.push_back(depthMap);
+
         TextureCube* shadowCubeMap = new TextureCube();
-        shadowCubeMap->mipmapEnabled = false;
-        shadowCubeMap->filterMin = GL_NEAREST;
-        shadowCubeMap->filterMax = GL_NEAREST;
-        shadowCubeMap->wrapS = GL_CLAMP_TO_EDGE;
-        shadowCubeMap->wrapT = GL_CLAMP_TO_EDGE;
-        shadowCubeMap->DefaultTextureCube(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+        shadowCubeMap->DefaultTextureCube(2048, 2048, GL_RED, GL_R32F);
         shadowCubeMaps.push_back(shadowCubeMap);
 
         glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapsFBO[i]);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowCubeMap->ID, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap->ID, 0);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
+        GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (Status != GL_FRAMEBUFFER_COMPLETE) {
+            LOG_ERROR("FB error, status: " + Status);
+        }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);  
     }
 }
@@ -132,21 +137,21 @@ void Engine::RenderObject(SceneObject* object) {
     
     // Bind uniforms specific to material
     int unit = material->BindUniforms();
+
     // MOVE THIS AS WELL 
     // I want to make this global but unit is dependent on material
-    shader->SetInt("_irrMap", irrMap->ID);
+    shader->SetInt("_irrMap", unit);
     irrMap->Bind(unit);
-    shader->SetInt("_prefilterMap", prefilterMap->ID);
-    prefilterMap->Bind(++unit);
-    shader->SetInt("_brdfLUT", brdfLUTTexture->ID);
-    brdfLUTTexture->Bind(++unit);
+    shader->SetInt("_prefilterMap", ++unit);
+    prefilterMap->Bind(unit);
+    shader->SetInt("_brdfLUT", ++unit);
+    brdfLUTTexture->Bind(unit);
     // not dynamic yet
-    shader->SetInt("_shadowMap0", shadowMaps[0]->ID);
-    shadowMaps[0]->Bind(++unit);
+    shader->SetInt("_shadowMap0", ++unit);
+    shadowMaps[0]->Bind(unit);
+    shader->SetInt("_shadowCubeMap0", ++unit);
+    shadowCubeMaps[0]->Bind(unit);
     shader->SetMatrix("_lightSpaceMatrix", scene->dirLights[0]->spaceMatrix);
-
-    shader->SetInt("_shadowCubeMap0", shadowCubeMaps[0]->ID);
-    shadowCubeMaps[0]->Bind(++unit);
 
     // Update shader matrices to apply _transformations
     shader->SetMatrix("_transform", object->transform);
@@ -177,7 +182,7 @@ void Engine::RenderMesh(Mesh* mesh) {
 void Engine::ShadowCapture() {
     LightObject *light;
     glm::mat4 lightProjection, lightView, lightSpaceMatrix, shadowProjection;
-    glm::mat4 shadowMatrices[6];
+    glm::mat4 shadowTransforms[6];
     lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -15.0f, 20.0f);
 
     for (int i = 0; i < scene->dirLights.size() && i < 4; i++) {
@@ -201,35 +206,46 @@ void Engine::ShadowCapture() {
         }
     }
 
+    glCullFace(GL_FRONT);
+    glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
     for (int i = 0; i < scene->pointLights.size() && i < 4; i++) {
         light = scene->pointLights[i];
 
-        shadowProjection = glm::perspective(glm::radians(90.0f), (float)shadowCubeMaps[i]->width / (float)shadowCubeMaps[i]->height, 1.0f, 25.0f);
-        shadowMatrices[0] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0));
-        shadowMatrices[1] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0));
-        shadowMatrices[2] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0));
-        shadowMatrices[3] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0,-1.0, 0.0), glm::vec3(0.0, 0.0,-1.0));
-        shadowMatrices[4] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 0.0, 1.0), glm::vec3(0.0,-1.0, 0.0));
-        shadowMatrices[5] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0,-1.0, 0.0));
-
+        shadowProjection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 25.0f);
+        shadowTransforms[0] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0));
+        shadowTransforms[1] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0));
+        shadowTransforms[2] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0));
+        shadowTransforms[3] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0,-1.0, 0.0), glm::vec3(0.0, 0.0,-1.0));
+        shadowTransforms[4] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 0.0, 1.0), glm::vec3(0.0,-1.0, 0.0));
+        shadowTransforms[5] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0,-1.0, 0.0));
+        
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, depthCubeMapsFBO[i]);
+        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, shadowCubeMaps[i]->width, shadowCubeMaps[i]->height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+        
         glViewport(0, 0, shadowCubeMaps[i]->width, shadowCubeMaps[i]->height);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapsFBO[i]);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, depthCubeMapsFBO[i]);
 
-        shadowPointShader->Use();
         for (unsigned int j = 0; j < 6; j++) {
-            shadowPointShader->SetMatrix("_shadowMatrices[" + std::to_string(j) + "]", shadowMatrices[j]);
-        } 
-        shadowPointShader->SetFloat("_farPlane", 25.0f);
-        shadowPointShader->SetVector("_pointlight0_pos", light->worldPos);
-        for (unsigned int j = 0; j < meshObjects.size(); j++) {
-            if (meshObjects[j]->shadowCast) {
-                shadowPointShader->SetMatrix("_transform", meshObjects[j]->transform);
-                RenderMesh(meshObjects[j]->mesh);
-            }
-        }
-    }
+            
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, shadowCubeMaps[i]->ID, 0);
+            glDrawBuffer(GL_COLOR_ATTACHMENT0);
+            glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+            shadowPointShader->Use();
+            shadowPointShader->SetMatrix("_shadowTransform", shadowTransforms[j]);
+            shadowPointShader->SetVector("_pointlight0_pos", light->worldPos);
+            for (unsigned int k = 0; k < meshObjects.size(); k++) {
+                if (meshObjects[k]->shadowCast) {
+                    shadowPointShader->SetMatrix("_transform", meshObjects[k]->transform);
+                    RenderMesh(meshObjects[k]->mesh);
+                }
+            }
+        } 
+        
+    }
+    glCullFace(GL_BACK);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

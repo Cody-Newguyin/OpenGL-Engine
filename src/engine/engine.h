@@ -32,6 +32,7 @@ class Engine {
     unsigned int depthMapsFBO[4];
     std::vector<Texture*> shadowMaps;
     unsigned int depthCubeMapsFBO[4];
+    std::vector<Texture*> depthMaps;
     std::vector<TextureCube*> shadowCubeMaps;
 
     // render settings

@@ -1,15 +1,13 @@
 #version 330 core
-in vec4 FragPos;
+
+in vec3 worldPos;
 
 uniform vec3 _pointlight0_pos;
-uniform float _farPlane;
+
+out float FragColor;
 
 void main() {
-    float lightDistance = length(FragPos.xyz - _pointlight0_pos);
-    
-    // map to value between 0 and 1
-    lightDistance = lightDistance / _farPlane;
+    float lightDistance = length(worldPos - _pointlight0_pos);
 
-    // write to depth
-    gl_FragDepth = 0.5f;
+    FragColor = lightDistance / 25.0f;
 }  

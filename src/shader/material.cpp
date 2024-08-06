@@ -8,7 +8,8 @@ int Material::BindUniforms() {
     // Unbind textures
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    
     // Bind textures
     for (unsigned int i = 0; i < uniformSamplers.size(); i++) {
         // Bind texture unit with our loaded texture

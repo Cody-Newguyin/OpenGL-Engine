@@ -29,6 +29,6 @@ Sphere::Sphere(unsigned int xSegments, unsigned int ySegments) {
         }
     }
 
-    //primitive = GL_TRIANGLE_STRIP;
+    primitive = GL_TRIANGLE_STRIP;
     LoadBuffers();
 }
