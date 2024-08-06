@@ -179,7 +179,9 @@ void Engine::RenderMesh(Mesh* mesh) {
     glBindVertexArray(0);
 }
 
-void Engine::ShadowCapture() {
+void Engine::ShadowCapture() { 
+    glCullFace(GL_FRONT);
+
     LightObject *light;
     glm::mat4 lightProjection, lightView, lightSpaceMatrix, shadowProjection;
     glm::mat4 shadowTransforms[6];
@@ -206,7 +208,6 @@ void Engine::ShadowCapture() {
         }
     }
 
-    glCullFace(GL_FRONT);
     glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
     for (int i = 0; i < scene->pointLights.size() && i < 4; i++) {
         light = scene->pointLights[i];
@@ -236,6 +237,7 @@ void Engine::ShadowCapture() {
             shadowPointShader->Use();
             shadowPointShader->SetMatrix("_shadowTransform", shadowTransforms[j]);
             shadowPointShader->SetVector("_pointlight0_pos", light->worldPos);
+            shadowPointShader->SetFloat("_farPlane", 25.0f);
             for (unsigned int k = 0; k < meshObjects.size(); k++) {
                 if (meshObjects[k]->shadowCast) {
                     shadowPointShader->SetMatrix("_transform", meshObjects[k]->transform);
