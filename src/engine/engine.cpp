@@ -20,48 +20,12 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
 
     scene->background = new Background();
     PBRcapture();
-    
-    // Shadow set up
-    shadowShader = new Shader();
-    shadowShader->Initialize("shaders/shadow_cast.vs", "shaders/shadow_cast.fs");
-    for (unsigned int i = 0; i < 4; i++) {
-        glGenFramebuffers(1, &depthMapsFBO[i]);
+    ShadowSetup();
 
-        Texture* shadowMap = new Texture();
-        shadowMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
-        shadowMaps.push_back(shadowMap);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFBO[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap->ID, 0);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
-    shadowPointShader = new Shader();
-    shadowPointShader->Initialize("shaders/point_shadow_cast.vs", "shaders/point_shadow_cast.fs");
-
-    for (unsigned int i = 0; i < 4; i++) {
-        glGenFramebuffers(1, &depthCubeMapsFBO[i]);
-
-        Texture* depthMap = new Texture();
-        depthMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT32);
-        depthMaps.push_back(depthMap);
-
-        TextureCube* shadowCubeMap = new TextureCube();
-        shadowCubeMap->DefaultTextureCube(2048, 2048, GL_RED, GL_R32F);
-        shadowCubeMaps.push_back(shadowCubeMap);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapsFBO[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap->ID, 0);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-        GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (Status != GL_FRAMEBUFFER_COMPLETE) {
-            LOG_ERROR("FB error, status: " + Status);
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);  
-    }
+    glGenBuffers(1, &globalUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
+    glBufferData(GL_UNIFORM_BUFFER, 152, NULL, GL_STATIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, globalUBO);
 }
 
 void Engine::Render() {
@@ -71,7 +35,6 @@ void Engine::Render() {
     // Render Background
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     
     // update camera
     camera.ProcessInput(window);
@@ -85,6 +48,11 @@ void Engine::Render() {
 }
 
 void Engine::UpdateGlobalUniforms(Shader* shader) {
+    glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
+    glBufferSubData(GL_UNIFORM_BUFFER,   0, sizeof(glm::mat4), &camera.projection); 
+    glBufferSubData(GL_UNIFORM_BUFFER,  64, sizeof(glm::mat4), &camera.view); 
+    glBufferSubData(GL_UNIFORM_BUFFER, 128, sizeof(glm::vec3), &camera.position);
+
     LightObject *light;
     for (int i = 0; i < scene->pointLights.size() && i < 4; i++) {
         light = scene->pointLights[i];
@@ -155,9 +123,6 @@ void Engine::RenderObject(SceneObject* object) {
 
     // Update shader matrices to apply _transformations
     shader->SetMatrix("_transform", object->transform);
-    shader->SetMatrix("_projection", camera.projection);
-    shader->SetMatrix("_view", camera.view);
-    shader->SetVector("_camPos", camera.position);
     
     // Update global uniforms 
     UpdateGlobalUniforms(shader);
@@ -177,6 +142,45 @@ void Engine::RenderMesh(Mesh* mesh) {
     }
     // Unbind VAO
     glBindVertexArray(0);
+}
+
+void Engine::ShadowSetup() {
+    shadowShader = new Shader();
+    shadowShader->Initialize("shaders/shadow_cast.vs", "shaders/shadow_cast.fs");
+    shadowPointShader = new Shader();
+    shadowPointShader->Initialize("shaders/point_shadow_cast.vs", "shaders/point_shadow_cast.fs");
+    
+    for (unsigned int i = 0; i < 4; i++) {
+        glGenFramebuffers(1, &depthMapsFBO[i]);
+
+        Texture* shadowMap = new Texture();
+        shadowMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+        shadowMaps.push_back(shadowMap);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFBO[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap->ID, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    for (unsigned int i = 0; i < 4; i++) {
+        glGenFramebuffers(1, &depthCubeMapsFBO[i]);
+
+        Texture* depthMap = new Texture();
+        depthMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+        depthMaps.push_back(depthMap);
+
+        TextureCube* shadowCubeMap = new TextureCube();
+        shadowCubeMap->DefaultTextureCube(2048, 2048, GL_RED, GL_RED);
+        shadowCubeMaps.push_back(shadowCubeMap);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapsFBO[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap->ID, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);  
+    }
 }
 
 void Engine::ShadowCapture() { 
@@ -220,16 +224,10 @@ void Engine::ShadowCapture() {
         shadowTransforms[4] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 0.0, 1.0), glm::vec3(0.0,-1.0, 0.0));
         shadowTransforms[5] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0,-1.0, 0.0));
         
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, depthCubeMapsFBO[i]);
-        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, shadowCubeMaps[i]->width, shadowCubeMaps[i]->height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
-        
         glViewport(0, 0, shadowCubeMaps[i]->width, shadowCubeMaps[i]->height);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, depthCubeMapsFBO[i]);
 
         for (unsigned int j = 0; j < 6; j++) {
-            
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, shadowCubeMaps[i]->ID, 0);
             glDrawBuffer(GL_COLOR_ATTACHMENT0);
             glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -247,6 +245,7 @@ void Engine::ShadowCapture() {
         } 
         
     }
+
     glCullFace(GL_BACK);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -325,7 +324,6 @@ void Engine::Render2Texture(SceneObject* object, Texture* target) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-
 void Engine::Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned int mipLevel) {
     // Render a cube with a texture then capture the results 6 times for each face
     // Results are stored in a framebuffer which is then stored in target cubemap
@@ -367,6 +365,7 @@ void Engine::Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned 
     for (unsigned int i = 0; i < 6; i++) {
         shader->SetMatrix("_view", captureViews[i]);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, target->ID, mipLevel);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         RenderMesh(mesh);
     }

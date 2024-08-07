@@ -43,11 +43,12 @@ class Engine {
     Engine();
     void Initialize(GLFWwindow* window, Scene* scene);
     void Render();
-    void ShadowCapture();
+   
 
     private:
     unsigned int captureFBO;
     unsigned int captureRBO;
+    unsigned int globalUBO;
     std::vector<SceneObject*> meshObjects;
     
     private:
@@ -57,7 +58,8 @@ class Engine {
     void ClearBuffers();
     void RenderObject(SceneObject* object);
     void RenderMesh(Mesh* mesh);
-    
+    void ShadowSetup();
+    void ShadowCapture();
     void PBRcapture();
     void Render2Texture(SceneObject* object, Texture* target);
     void Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned int mipLevel);

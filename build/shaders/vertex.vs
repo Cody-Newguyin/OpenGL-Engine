@@ -1,5 +1,7 @@
 #version 330 core
 
+#include uniforms.glsl
+
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec2 texCoord;
 layout (location = 2) in vec3 norm;
@@ -11,12 +13,8 @@ out Interpolator {
     vec4 shadowCoords;
 } i;
 
-// globals
 uniform mat4 _transform;
-uniform mat4 _view;
-uniform mat4 _projection;
 uniform mat4 _lightSpaceMatrix;
-
 uniform vec4 _mainTex_ST;
 
 void main() {

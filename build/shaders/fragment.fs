@@ -1,6 +1,7 @@
 #version 330 core
 
 #include common.glsl
+#include uniforms.glsl
 
 in Interpolator {
     vec2 uv;
@@ -15,7 +16,7 @@ uniform vec3 _dirlight0_dir;
 uniform vec3 _dirlight0_color;
 uniform vec3 _pointlight0_pos;
 uniform vec3 _pointlight0_color;
-uniform vec3 _camPos;
+uniform float _farPlane = 25.0f;
 
 // PBR stuff
 uniform samplerCube _irrMap;
@@ -25,7 +26,6 @@ uniform sampler2D _brdfLUT;
 // Shadow stuff
 uniform sampler2D _shadowMap0;
 uniform samplerCube _shadowCubeMap0;
-uniform float _farPlane = 25.0f;
 
 uniform float _smoothness = 0.1f;
 uniform float _metallic = 0.0f;
@@ -40,28 +40,49 @@ struct Light {
 float CalculateDirShadow(vec4 shadowCoords, vec3 normal, vec3 lightDir) {
     vec3 coords = shadowCoords.xyz / shadowCoords.w;
     coords = coords * 0.5 + 0.5;
-    float closeDepth = texture(_shadowMap0, coords.xy).r;
     float currentDepth = coords.z;
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
-    float shadow = currentDepth - bias > closeDepth ? 1.0 : 0.0;
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+
+    // Soft shadows using PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(_shadowMap0, 0);
+    for(int x = -1; x <= 1; x++) {
+        for(int y = -1; y <= 1; y++) {
+            float pcfDepth = texture(_shadowMap0, coords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
     return shadow;
 }
 
-float CalculatePointShadow(vec3 lightPos) {
+const vec3 sampleOffsetDirections[20] = vec3[] (
+   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+   vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+   vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);   
+
+float CalculatePointShadow(vec3 normal, vec3 lightPos) {
     vec3 lightVec = i.worldPos - lightPos;
-
-    float closeDepth = texture(_shadowCubeMap0, lightVec).r;
-    closeDepth *= _farPlane;
-
     float currentDepth = length(lightVec);
+    float bias = max(0.05 * (1.0 - dot(normal, lightVec)), 0.005);
 
-    float bias = 0.05; 
-    float shadow = currentDepth -  bias > closeDepth ? 1.0 : 0.0;
-
+    // Soft shadows using PCF
+    float shadow = 0.0;
+    int samples  = 20;
+    float diskRadius = 0.05;
+    for(int i = 0; i < samples; i++) {
+        float pcfDepth = texture(_shadowCubeMap0, lightVec + sampleOffsetDirections[i] * diskRadius).r;
+        pcfDepth *= _farPlane;   // undo mapping [0;1]
+        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;   
+    }
+    shadow /= float(samples);
     return shadow;
 }  
 
-vec3 BRDF_PBR(vec3 albedo, vec3 specularTint, float oneMinusReflectivity, float smoothness, vec3 normal, vec3 viewDir, Light light) {
+vec3 BRDF_PBR(vec3 albedo, vec3 specularTint, float smoothness, vec3 normal, vec3 viewDir, Light light) {
     float roughness = 1 - smoothness;
     vec3 halfVector = normalize(light.dir + viewDir);
     float ndotl = DotClamped(normal, light.dir);
@@ -81,7 +102,6 @@ vec3 BRDF_PBR(vec3 albedo, vec3 specularTint, float oneMinusReflectivity, float 
     kD *= 1.0 - _metallic;	   
 
     vec3 color = (kD * albedo / PI + specular) * light.color * ndotl;
-    
     return color;
 }
 
@@ -109,26 +129,27 @@ void main() {
     vec3 specularTint;
     float oneMinusReflectivity;
     albedo = DiffuesAndSpecullarFromMetallic(albedo, pow(_metallic, 1.0f / GAMMA), specularTint, oneMinusReflectivity);
-    
+
     float roughness = 1.0 - _smoothness;
     vec3 normal = normalize(i.normal);
     vec3 viewDir = normalize(_camPos - i.worldPos);
     vec3 reflectDir = reflect(-viewDir, normal);
 
     // Apply light
-    Light light = CreatePointLight(_pointlight0_pos, _pointlight0_color);
-    vec3 color = BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light)
-                * (1.0 - CalculatePointShadow(_pointlight0_pos));
-    light = CreateDirLight(_dirlight0_dir, _dirlight0_color);
-    color += BRDF_PBR(albedo, specularTint, oneMinusReflectivity, _smoothness, normal, viewDir, light)
+    Light light = CreateDirLight(_dirlight0_dir, _dirlight0_color);
+    vec3 color = BRDF_PBR(albedo, specularTint, _smoothness, normal, viewDir, light)
             * (1.0 - CalculateDirShadow(i.shadowCoords, normal, light.dir));
+    
+    light = CreatePointLight(_pointlight0_pos, _pointlight0_color);
+    color += BRDF_PBR(albedo, specularTint, _smoothness, normal, viewDir, light)
+                * (1.0 - CalculatePointShadow(normal, _pointlight0_pos));
+
     
     // Apply ambient lighting from background
     vec3 F = FresnelSchlickRoughness(DotClamped(normal, viewDir), specularTint, roughness);
     vec3 kS = F;
     vec3 kD = 1.0 - kS;
     kD *= 1.0 - _metallic;	  
-
     vec3 irradiance = texture(_irrMap, normal).rgb;
     vec3 diffuse = albedo * irradiance;
     vec3 prefilteredColor = textureLod(_prefilterMap, reflectDir, roughness * MAX_LOD).rgb;
