@@ -1,31 +1,36 @@
-README
-========================
+# Personal OpenGL Graphics Renderer
 
-# Personal OpenGL Graphics Engine
+An OpenGL graphics renderer largely based on Joey de Vries' [Learn OpenGL tutorial](https://learnopengl.com/) and Jasper Flick's [Catlike Coding tutorials](https://catlikecoding.com/). The project serves as functioning render engine to teach myself graphics techniques.
 
-An OpenGL graphics engine largely based on Joey de Vries' [Learn OpenGL tutorial](https://learnopengl.com/) and Jasper Flick's [Catlike Coding tutorials](https://catlikecoding.com/). 
-
+## Samples
 ![Demo](demo.gif)
 
 ## Features
-- Logging utility using the [spdlog library](https://github.com/gabime/spdlog)
+Renderer
 - Material/shader pipeline
-    - Shader object has custom pre-processor to handle defines and includes
-    - Easy to manage state of materials, textures, and shader
-    - Includes default materials
-- Scene management
-    - Scene objects are easy to add using defined meshes (cube, sphere, etc) and materials
-    - Object hierarchy structure allows transforms to be relative to one-another
-- Framebuffers
-    - Used for capturing shadow maps, enviornmental cubemaps, etc
-- PBR render pipeline
-    - Calculates and stores diffuse integral, prefiltered enviornments, and BRDF into samplers
-    - Supports multiple directional/point light with shadows
-    - Enviornmental lighting
+    - Custom shader pre-processor to handle defines and includes
+    - Normal mapping
+- Physically based rendering
+    - Diffuse integral, prefiltered environments, and BRDFlut
+    - Multiple directional/point light
+    - Shadow mapping
+    - Image based lighting
 - Post-procesing
     - Gamma Correction
+
+Other
+- Scene management
+    - Scene objects with position, rotation, and scale
+    - Easy to add using pre-defined meshes (cube, sphere, etc) and materials
+    - Object hierarchy structure allows transforms to be relative to one-another
+- Logging utility using the [spdlog library](https://github.com/gabime/spdlog)
 - Editor using [ImGui library](https://github.com/ocornut/imgui)
     - Edit materials and object transform during runtime
 
+## Building on Windows
+1. Clone repo
+2. Download [GLFW pre-compiled binaries](https://www.glfw.org/download) and put the `libglfw3.a` file in `src/libs/glfw/`. 
+3. Compile with CMake and then run
+
 ## Limitations
-- Has only been tested on my own system running on Windows with the MingW64 compiler built using cmake
+- Has only been tested on my own system running on Windows with the MingW64 compiler
