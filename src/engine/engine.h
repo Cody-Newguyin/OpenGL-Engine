@@ -38,6 +38,7 @@ class Engine {
     // render settings
     bool wireframe = false;
     bool debug = true;
+    const int n_lights = 4;
 
     public:
     Engine();

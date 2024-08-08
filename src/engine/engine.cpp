@@ -24,7 +24,7 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
 
     glGenBuffers(1, &globalUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
-    glBufferData(GL_UNIFORM_BUFFER, 152, NULL, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 720, NULL, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, globalUBO);
 }
 
@@ -54,12 +54,12 @@ void Engine::UpdateGlobalUniforms(Shader* shader) {
     glBufferSubData(GL_UNIFORM_BUFFER, 128, sizeof(glm::vec3), &camera.position);
 
     LightObject *light;
-    for (int i = 0; i < scene->pointLights.size() && i < 4; i++) {
+    for (int i = 0; i < scene->pointLights.size() && i < n_lights; i++) {
         light = scene->pointLights[i];
         shader->SetVector("_pointlight" + std::to_string(i) + "_pos", light->worldPos);
         shader->SetVector("_pointlight" + std::to_string(i) + "_color", light->color * light->intensity);
     }
-    for (int i = 0; i < scene->dirLights.size() && i < 4; i++) {
+    for (int i = 0; i < scene->dirLights.size() && i < n_lights; i++) {
         light = scene->dirLights[i];
         shader->SetVector("_dirlight" + std::to_string(i) + "_dir", light->direction);
         shader->SetVector("_dirlight" + std::to_string(i) + "_color", light->color * light->intensity);
@@ -150,7 +150,7 @@ void Engine::ShadowSetup() {
     shadowPointShader = new Shader();
     shadowPointShader->Initialize("shaders/point_shadow_cast.vs", "shaders/point_shadow_cast.fs");
     
-    for (unsigned int i = 0; i < 4; i++) {
+    for (unsigned int i = 0; i < n_lights; i++) {
         glGenFramebuffers(1, &depthMapsFBO[i]);
 
         Texture* shadowMap = new Texture();
@@ -164,7 +164,7 @@ void Engine::ShadowSetup() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    for (unsigned int i = 0; i < 4; i++) {
+    for (unsigned int i = 0; i < n_lights; i++) {
         glGenFramebuffers(1, &depthCubeMapsFBO[i]);
 
         Texture* depthMap = new Texture();
@@ -191,7 +191,7 @@ void Engine::ShadowCapture() {
     glm::mat4 shadowTransforms[6];
     lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -15.0f, 20.0f);
 
-    for (int i = 0; i < scene->dirLights.size() && i < 4; i++) {
+    for (int i = 0; i < scene->dirLights.size() && i < n_lights; i++) {
         light = scene->dirLights[i];
 
         lightView = glm::lookAt(light->direction * 5.0f, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
@@ -213,7 +213,7 @@ void Engine::ShadowCapture() {
     }
 
     glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
-    for (int i = 0; i < scene->pointLights.size() && i < 4; i++) {
+    for (int i = 0; i < scene->pointLights.size() && i < n_lights; i++) {
         light = scene->pointLights[i];
 
         shadowProjection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 25.0f);
