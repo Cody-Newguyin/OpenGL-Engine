@@ -168,11 +168,11 @@ void Engine::ShadowSetup() {
         glGenFramebuffers(1, &depthCubeMapsFBO[i]);
 
         Texture* depthMap = new Texture();
-        depthMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+        depthMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT32);
         depthMaps.push_back(depthMap);
 
         TextureCube* shadowCubeMap = new TextureCube();
-        shadowCubeMap->DefaultTextureCube(2048, 2048, GL_RED, GL_RED);
+        shadowCubeMap->DefaultTextureCube(2048, 2048, GL_RED, GL_R32F);
         shadowCubeMaps.push_back(shadowCubeMap);
 
         glBindFramebuffer(GL_FRAMEBUFFER, depthCubeMapsFBO[i]);
