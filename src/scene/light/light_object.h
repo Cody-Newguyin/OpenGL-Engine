@@ -12,16 +12,20 @@ enum LIGHT_TYPE {
 
 class LightObject : public SceneObject {
     public:
-    glm::vec3 color = glm::vec3(1.0f);
-    glm::vec3 direction;
-    float intensity = 1.0f;
     LIGHT_TYPE type;
 
+    glm::vec3 color = glm::vec3(1.0f);
+    glm::vec3 realColor;
+    float intensity = 1.0f;
+    
+    glm::vec3 direction;
     glm::mat4 spaceMatrix;
     
     public:
     LightObject(LIGHT_TYPE type);
     void UpdateTransform();
+    glm::vec3* GetRealColor();
+    
 };
 
 #endif

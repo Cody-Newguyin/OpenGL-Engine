@@ -53,16 +53,21 @@ void Engine::UpdateGlobalUniforms(Shader* shader) {
     glBufferSubData(GL_UNIFORM_BUFFER,  64, sizeof(glm::mat4), &camera.view); 
     glBufferSubData(GL_UNIFORM_BUFFER, 128, sizeof(glm::vec3), &camera.position);
 
+    // update light information
     LightObject *light;
-    for (int i = 0; i < scene->pointLights.size() && i < n_lights; i++) {
-        light = scene->pointLights[i];
-        shader->SetVector("_pointlight" + std::to_string(i) + "_pos", light->worldPos);
-        shader->SetVector("_pointlight" + std::to_string(i) + "_color", light->color * light->intensity);
-    }
-    for (int i = 0; i < scene->dirLights.size() && i < n_lights; i++) {
+    // i * 16 is a stride, and n_lights* 16 is the offset
+    int base = 144;
+    for (unsigned int i = 0; i < scene->dirLights.size() && i < n_lights; i++) {
         light = scene->dirLights[i];
-        shader->SetVector("_dirlight" + std::to_string(i) + "_dir", light->direction);
-        shader->SetVector("_dirlight" + std::to_string(i) + "_color", light->color * light->intensity);
+        glBufferSubData(GL_UNIFORM_BUFFER, base + i * 16,                       sizeof(glm::vec3), &light->direction);
+        glBufferSubData(GL_UNIFORM_BUFFER, base + (n_lights * 16) + i * 16,     sizeof(glm::vec3), light->GetRealColor());
+        glBufferSubData(GL_UNIFORM_BUFFER, base + (n_lights * (16 + 16)) + i * 64,  sizeof(glm::mat4), &light->spaceMatrix);
+    }
+    base += n_lights * (16 + 16 + 64);
+    for (unsigned int i = 0; i < scene->pointLights.size() && i < n_lights; i++) {
+        light = scene->pointLights[i];
+        glBufferSubData(GL_UNIFORM_BUFFER, base + i * 16,                   sizeof(glm::vec3), &light->worldPos);
+        glBufferSubData(GL_UNIFORM_BUFFER, base + (n_lights * 16) + i * 16, sizeof(glm::vec3), light->GetRealColor());
     }
 }
 
@@ -106,20 +111,22 @@ void Engine::RenderObject(SceneObject* object) {
     // Bind uniforms specific to material
     int unit = material->BindUniforms();
 
-    // MOVE THIS AS WELL 
-    // I want to make this global but unit is dependent on material
+    // Set Samplers
     shader->SetInt("_irrMap", unit);
     irrMap->Bind(unit);
     shader->SetInt("_prefilterMap", ++unit);
     prefilterMap->Bind(unit);
     shader->SetInt("_brdfLUT", ++unit);
     brdfLUTTexture->Bind(unit);
-    // not dynamic yet
-    shader->SetInt("_shadowMap0", ++unit);
-    shadowMaps[0]->Bind(unit);
-    shader->SetInt("_shadowCubeMap0", ++unit);
-    shadowCubeMaps[0]->Bind(unit);
-    shader->SetMatrix("_lightSpaceMatrix", scene->dirLights[0]->spaceMatrix);
+
+    for (unsigned int i = 0; i < scene->dirLights.size() && i < n_lights; i++) { 
+        shader->SetInt("_shadowMap[" + std::to_string(i) + "]", ++unit);
+        shadowMaps[i]->Bind(unit);
+    }
+    for (unsigned int i = 0; i < scene->pointLights.size() && i < n_lights; i++) { 
+        shader->SetInt("_shadowCubeMap[" + std::to_string(i) + "]", ++unit);
+        shadowCubeMaps[i]->Bind(unit);
+    }
 
     // Update shader matrices to apply _transformations
     shader->SetMatrix("_transform", object->transform);

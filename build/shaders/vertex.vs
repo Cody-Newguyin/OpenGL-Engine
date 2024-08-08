@@ -10,18 +10,15 @@ out Interpolator {
     vec2 uv;
     vec3 normal;
     vec3 worldPos;
-    vec4 shadowCoords;
 } i;
 
 uniform mat4 _transform;
-uniform mat4 _lightSpaceMatrix;
 uniform vec4 _mainTex_ST;
 
 void main() {
     i.uv = texCoord * _mainTex_ST.xy + _mainTex_ST.zw;
     i.normal = mat3(transpose(inverse(_transform))) * norm;
     i.worldPos = vec3(_transform * vec4(pos, 1.0));
-    i.shadowCoords = _lightSpaceMatrix * vec4(i.worldPos, 1.0);
 
     gl_Position = _projection * _view * _transform * vec4(pos, 1.0);
 }

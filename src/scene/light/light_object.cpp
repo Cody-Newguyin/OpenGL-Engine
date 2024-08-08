@@ -15,3 +15,9 @@ void LightObject::UpdateTransform() {
     direction.y = sin(radY)*cos(radX);
     direction.z = sin(radX);
 }
+
+// this is wack
+glm::vec3 *LightObject::GetRealColor() {
+    this->realColor = this->color * this->intensity;
+    return &this->realColor;
+}

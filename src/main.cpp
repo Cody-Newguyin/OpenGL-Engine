@@ -91,6 +91,18 @@ int main(int, char**){
     emptyObject.SetName("Empty");
     
     // Create lights
+    LightObject dirLight0 = LightObject(LIGHT_TYPE_DIR);
+    dirLight0.rotation = glm::vec3(-10.0f, 60.0f, 0.0f);
+    dirLight0.SetName("DirLight 1");
+    scene.AddLight(&dirLight0);
+    scene.AddObject(&dirLight0);
+
+    LightObject dirLight1 = LightObject(LIGHT_TYPE_DIR);
+    dirLight1.rotation = glm::vec3(40.0f, 90.0f, 0.0f);
+    dirLight1.SetName("DirLight 2");
+    scene.AddLight(&dirLight1);
+    scene.AddObject(&dirLight1);
+
     LightObject pointLight0 = LightObject(LIGHT_TYPE_POINT);
     pointLight0.position = glm::vec3(1.0f, 0.0f, 0.0f);
     pointLight0.SetMesh(&sphere);
@@ -99,11 +111,7 @@ int main(int, char**){
     scene.AddLight(&pointLight0);
     emptyObject.AddObject(&pointLight0);
 
-    LightObject dirLight0 = LightObject(LIGHT_TYPE_DIR);
-    dirLight0.rotation = glm::vec3(-10.0f, 60.0f, 0.0f);
-    dirLight0.SetName("DirLight 1");
-    scene.AddLight(&dirLight0);
-    scene.AddObject(&dirLight0);
+    
 
     // Setup GUI
     ImGuiHandler guiHandler = ImGuiHandler();
@@ -128,7 +136,8 @@ int main(int, char**){
         cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
         emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
         dirLight0.UpdateTransform();
-
+        dirLight1.UpdateTransform();
+        
         // Render
         engine.Render();
         guiHandler.Render();
