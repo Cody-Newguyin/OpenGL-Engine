@@ -6,10 +6,8 @@ BasicMaterial::BasicMaterial() {
     BasicShader.Initialize("shaders/vertex.vs", "shaders/fragment.fs");
 
     // Load Textures
-    defaultTex = Texture();
-    defaultTex.LoadTexture("textures/white.png", GL_RGBA);
     mainTex = Texture();
-    mainTex.LoadTexture("textures/texture.png", GL_RGBA);
+    mainTex.LoadTexture("textures/white.png", GL_RGBA);
     detailTex = Texture();
     detailTex.LoadTexture("textures/grid.png", GL_RED);
     

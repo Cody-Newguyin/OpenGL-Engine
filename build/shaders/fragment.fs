@@ -121,7 +121,7 @@ Light CreatePointLight(vec3 pos, vec3 color) {
 void main() {
     float luminance = texture(_detailTex, input.uv).r;
     vec3 albedo = texture(_mainTex, input.uv).rgb;
-    albedo = vec3(0.5, 0.5, 1.0);
+    
     vec3 specularTint;
     float oneMinusReflectivity;
     albedo = DiffuesAndSpecullarFromMetallic(albedo, pow(_metallic, 1.0f / GAMMA), specularTint, oneMinusReflectivity);

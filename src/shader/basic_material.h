@@ -7,7 +7,6 @@ class BasicMaterial : public Material {
     public:
     Shader BasicShader;
 
-    Texture defaultTex;
     Texture mainTex;
     Texture detailTex;
 

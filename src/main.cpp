@@ -24,6 +24,7 @@
 #include "shader/texture.h"
 #include "shader/texture_cube.h"
 #include "shader/basic_material.h"
+#include "utility/object_loader.h"
 #include "utility/utility.h"
 
 int main(int, char**){
@@ -55,35 +56,29 @@ int main(int, char**){
     Sphere sphere = Sphere(30, 30);
     Plane plane = Plane(10, 10);
     Quad quad = Quad();
-    std::vector<Mesh> meshes = ReadObjFile("meshes/bunny.obj");
 
     // Load objects into scene
-    SceneObject bunnyObject = SceneObject(&meshes[0], &testMaterial);
-    scene.AddObject(&bunnyObject);
-    bunnyObject.SetName("Bunny");
-
+    SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/bunny.obj");
+    bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
+    bunnyObject->SetName("Bunny");
+    scene.AddObject(bunnyObject);
+    
     SceneObject cubeObject = SceneObject(&cube, &testMaterial);
-    cubeObject.SetPosition(glm::vec3(0.0f, -1.5f, 0.0f));
+    cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
     scene.AddObject(&cubeObject);
     cubeObject.SetName("Cube");
 
     SceneObject sphereObject = SceneObject(&sphere, &testMaterial);
-    sphereObject.SetPosition(glm::vec3(0.0f, 1.5f, 0.0f));
+    sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
     scene.AddObject(&sphereObject);
     sphereObject.SetName("Sphere");
 
     SceneObject planeObject = SceneObject(&plane, &testMaterial);
-    planeObject.SetPosition(glm::vec3(0.0f, -2.5f, 0.0f));
+    planeObject.SetPosition(glm::vec3(0.0f, -3.0f, 0.0f));
     planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
     scene.AddObject(&planeObject);
     planeObject.SetName("Plane");
-
-    SceneObject cubeObject2 = SceneObject(&cube, &testMaterial);
-    cubeObject2.SetPosition(glm::vec3(0.0f, -2.5f, 0.0f));
-    cubeObject2.SetScale(glm::vec3(4.0f, 0.25f, 4.0f));
-    scene.AddObject(&cubeObject2);
-    cubeObject2.SetName("Cube 2");
 
     SceneObject quadObject = SceneObject(&quad, &testMaterial);
     quadObject.SetPosition(glm::vec3(0.0f, 0.0f, -5.0f));
@@ -102,11 +97,11 @@ int main(int, char**){
     scene.AddLight(&dirLight0);
     scene.AddObject(&dirLight0);
 
-    LightObject dirLight1 = LightObject(LIGHT_TYPE_DIR);
-    dirLight1.rotation = glm::vec3(40.0f, 90.0f, 0.0f);
-    dirLight1.SetName("DirLight 2");
-    scene.AddLight(&dirLight1);
-    scene.AddObject(&dirLight1);
+    // LightObject dirLight1 = LightObject(LIGHT_TYPE_DIR);
+    // dirLight1.rotation = glm::vec3(40.0f, 90.0f, 0.0f);
+    // dirLight1.SetName("DirLight 2");
+    // scene.AddLight(&dirLight1);
+    // scene.AddObject(&dirLight1);
 
     LightObject pointLight0 = LightObject(LIGHT_TYPE_POINT);
     pointLight0.position = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -140,8 +135,8 @@ int main(int, char**){
         // Update scene here
         cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
         emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
-        dirLight0.UpdateTransform();
-        dirLight1.UpdateTransform();
+        scene.root->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+        scene.root->UpdateTransform();
         
         // Render
         engine.Render();
