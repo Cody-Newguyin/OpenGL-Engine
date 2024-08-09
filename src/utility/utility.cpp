@@ -62,7 +62,7 @@ std::string ReadShader(std::string filename, std::string type) {
 
 std::vector<Mesh> ReadObjFile(std::string inputfile) {
     tinyobj::ObjReaderConfig reader_config;
-    reader_config.mtl_search_path = "textures/";
+    reader_config.mtl_search_path = "";
     
     tinyobj::ObjReader reader;
 
