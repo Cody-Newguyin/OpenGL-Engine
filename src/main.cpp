@@ -55,8 +55,13 @@ int main(int, char**){
     Sphere sphere = Sphere(30, 30);
     Plane plane = Plane(10, 10);
     Quad quad = Quad();
+    std::vector<Mesh> meshes = ReadObjFile("meshes/bunny.obj");
 
     // Load objects into scene
+    SceneObject bunnyObject = SceneObject(&meshes[0], &testMaterial);
+    scene.AddObject(&bunnyObject);
+    bunnyObject.SetName("Bunny");
+
     SceneObject cubeObject = SceneObject(&cube, &testMaterial);
     cubeObject.SetPosition(glm::vec3(0.0f, -1.5f, 0.0f));
     scene.AddObject(&cubeObject);

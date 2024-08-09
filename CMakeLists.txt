@@ -4,6 +4,7 @@ project(MyOpenGLEngine VERSION 0.1.0 LANGUAGES C CXX)
 link_directories(src/libs/glfw)
 link_directories(src/libs/spdlog)
 
+include_directories(src)
 include_directories(src/libs)
 include_directories(src/libs/glad)
 include_directories(src/libs/glfw)
@@ -14,7 +15,8 @@ include_directories(src/libs/KHR)
 include_directories(src/libs/imgui)
 include_directories(src/libs/stb_image)
 include_directories(src/libs/spdlog)
-include_directories(src)
+include_directories(src/libs/tiny_obj_loader)
+
 
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_executable(MyOpenGLEngine ${SOURCES})

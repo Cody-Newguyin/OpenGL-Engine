@@ -5,7 +5,6 @@
 *.slo
 *.lo
 *.o
-*.obj
 
 # Precompiled Headers
 *.gch
@@ -34,4 +33,5 @@
 build/*
 !build/shaders/
 !build/textures/
+!build/meshes/
 .vscode/
