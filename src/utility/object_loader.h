@@ -10,7 +10,7 @@
 
 class ObjectLoader {
     public:
-    static SceneObject* ReadObjFile(std::string inputfile);
+    static SceneObject* ReadObjFile(std::string filename);
 };
 
 #endif

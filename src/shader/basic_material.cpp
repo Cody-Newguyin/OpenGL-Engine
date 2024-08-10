@@ -1,13 +1,13 @@
 #include "shader/basic_material.h"
 
-BasicMaterial::BasicMaterial() {
+BasicMaterial::BasicMaterial(std::string mainFile) {
     // Load Shader
     BasicShader = Shader();
     BasicShader.Initialize("shaders/vertex.vs", "shaders/fragment.fs");
 
     // Load Textures
     mainTex = Texture();
-    mainTex.LoadTexture("textures/white.png", GL_RGBA);
+    mainTex.LoadTexture(mainFile, GL_RGBA);
     detailTex = Texture();
     detailTex.LoadTexture("textures/grid.png", GL_RED);
     

@@ -49,7 +49,7 @@ int main(int, char**){
     lightMaterial.SetShader(&lightShader);
 
     // Load basic material
-    BasicMaterial testMaterial = BasicMaterial();
+    BasicMaterial testMaterial = BasicMaterial("textures/texture.png");
 
     // Load meshes
     Cube cube = Cube();
@@ -58,7 +58,7 @@ int main(int, char**){
     Quad quad = Quad();
 
     // Load objects into scene
-    SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/bunny.obj");
+    SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/backpack/backpack.obj");
     bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
     bunnyObject->SetName("Bunny");
     scene.AddObject(bunnyObject);

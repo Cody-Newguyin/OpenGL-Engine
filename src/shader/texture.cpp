@@ -47,7 +47,7 @@ void Texture::LoadTexture(std::string filename, GLenum internalFormat) {
     this->internalFormat = internalFormat;
 
     // Flip images before loading
-    stbi_set_flip_vertically_on_load(true); 
+    stbi_set_flip_vertically_on_load(false); 
 
     // load image and set texture configurations
     int width, height, nrChannels;

@@ -4,13 +4,13 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
-SceneObject* ObjectLoader::ReadObjFile(std::string inputfile) {
-    tinyobj::ObjReaderConfig reader_config;
-    reader_config.mtl_search_path = "";
-    
+SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
     tinyobj::ObjReader reader;
+    tinyobj::ObjReaderConfig reader_config;
+    std::string directory = filename.substr(0, filename.find_last_of("/\\"));
+    reader_config.mtl_search_path = "";
 
-    if (!reader.ParseFromFile(inputfile, reader_config)) {
+    if (!reader.ParseFromFile(filename, reader_config)) {
         if(!reader.Error().empty()) {
             LOG_ERROR("TINYOBJ: " + reader.Error());
         }
@@ -23,7 +23,15 @@ SceneObject* ObjectLoader::ReadObjFile(std::string inputfile) {
     auto& shapes = reader.GetShapes();
     auto& materials = reader.GetMaterials();
 
+    std::vector<BasicMaterial*> basicMaterials;
+    for (size_t m = 0; m < materials.size(); m++) {
+        BasicMaterial* basicMaterial = new BasicMaterial(directory + "/" + materials[m].diffuse_texname);
+        basicMaterials.push_back(basicMaterial);
+        // LOG_INFO(directory + "/" + materials[m].diffuse_texname);
+    }
+
     SceneObject* object = new SceneObject();
+
     for (size_t s = 0; s < shapes.size(); s++) {
         Mesh* mesh = new Mesh();
         VertexData vertex;
@@ -37,7 +45,6 @@ SceneObject* ObjectLoader::ReadObjFile(std::string inputfile) {
             for (size_t v = 0; v < fv; v++) {
                 // access to vertex
                 tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-
                 tinyobj::real_t vx = attrib.vertices[3*size_t(idx.vertex_index)+0];
                 tinyobj::real_t vy = attrib.vertices[3*size_t(idx.vertex_index)+1];
                 tinyobj::real_t vz = attrib.vertices[3*size_t(idx.vertex_index)+2];
@@ -65,15 +72,13 @@ SceneObject* ObjectLoader::ReadObjFile(std::string inputfile) {
                 mesh->vertices.push_back(vertex);
             }
             index_offset += fv;
-            
+            // LOG_INFO(shapes[s].mesh.material_ids[f]);
         }
         mesh->LoadBuffers();
-        SceneObject* childObject = new SceneObject(mesh, new BasicMaterial());
+        // LOG_INFO(basicMaterials.size());
+        // LOG_INFO(shapes[s].mesh.material_ids[f]);
+        SceneObject* childObject = new SceneObject(mesh, basicMaterials[shapes[s].mesh.material_ids[0]]);
         object->AddObject(childObject);
-    }
-    
-    for (size_t m = 0; m < materials.size(); m++) {
-        LOG_INFO(materials[m].diffuse_texname);
     }
 
     return object;

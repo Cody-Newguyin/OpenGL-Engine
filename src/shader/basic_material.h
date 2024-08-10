@@ -1,6 +1,7 @@
 #ifndef _SHADER_BASIC_MATERIAL_H_
 #define _SHADER_BASIC_MATERIAL_H_
 
+#include <string>
 #include "shader/material.h"
 
 class BasicMaterial : public Material {
@@ -15,7 +16,7 @@ class BasicMaterial : public Material {
     float metallic = 0.0f;
 
     public:
-    BasicMaterial();
+    BasicMaterial(std::string mainFile = "textures/white.png");
     ~BasicMaterial();
 };
 
