@@ -18,6 +18,7 @@ class Scene {
     Scene();
     void AddObject(SceneObject*object);
     void AddLight(LightObject* light);
+    void Update();
     void Clear();
 
     private:

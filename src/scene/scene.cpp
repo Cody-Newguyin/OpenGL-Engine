@@ -19,6 +19,16 @@ void Scene::AddLight(LightObject *light) {
     
 }
 
+void Scene::Update() {
+    this->root->UpdateTransform();
+    for (unsigned int i = 0; i < dirLights.size(); i++) {
+        dirLights[i]->UpdateTransform();
+    }
+    for (unsigned int i = 0; i < pointLights.size(); i++) {
+        pointLights[i]->UpdateTransform();
+    }
+}
+
 void Scene::Clear() {
     root->children.clear();
     pointLights.clear();

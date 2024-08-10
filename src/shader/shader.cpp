@@ -1,6 +1,7 @@
 #include "shader/shader.h"
 #include "utility/utility.h"
 #include "log/log.h"
+#include "shader.h"
 
 Shader::Shader() {
 
@@ -10,14 +11,20 @@ void Shader::Initialize(std::string vertexFilename, std::string fragmentFilename
     this->vertexFilename = vertexFilename;
     this->fragmentFilename = fragmentFilename;
 
+    // Setup defines
+    std::string defineCode = "";
+    for (unsigned int i = 0; i < defines.size(); i++) {
+        defineCode +=  "#define " + defines[i] + " \n";
+    }
+
     // Read in shader code
-    std::string vertexCode = ReadShader(vertexFilename, "SHADER::Vertex");
-    std::string fragmentCode = ReadShader(fragmentFilename, "SHADER::Fragment");
+    std::string vertexCode = ReadShader(vertexFilename, "SHADER::Vertex", defineCode);
+    std::string fragmentCode = ReadShader(fragmentFilename, "SHADER::Fragment", defineCode);
     std::string geometryCode;
 
     // Convert code into c-strings
-    const char* vertexShaderSource = vertexCode.c_str();
-    const char* fragmentShaderSource = fragmentCode.c_str();
+    const char* vertexShaderSource = (vertexCode).c_str();
+    const char* fragmentShaderSource = (fragmentCode).c_str();
     const char* geometryShaderSource;
 
     int success;
@@ -47,7 +54,7 @@ void Shader::Initialize(std::string vertexFilename, std::string fragmentFilename
 
     // Do all the above for geometry shader if supplied
     if (!geometryFilename.empty()) {
-        geometryCode = ReadShader(geometryFilename, "SHADER::GEOMETRY");
+        geometryCode = ReadShader(geometryFilename, "SHADER::GEOMETRY", defineCode);
         geometryShaderSource = geometryCode.c_str();
         geometryShaderID = glCreateShader(GL_GEOMETRY_SHADER);
         glShaderSource(geometryShaderID, 1, &geometryShaderSource, NULL);
@@ -85,6 +92,10 @@ void Shader::Use() {
 
 void Shader::Unload() {
     glDeleteProgram(programID);
+}
+
+void Shader::AddDefine(std::string define) {
+    this->defines.push_back(define);
 }
 
 void Shader::SetInt(std::string location, int value) {

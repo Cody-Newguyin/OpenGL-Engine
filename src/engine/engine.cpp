@@ -40,6 +40,7 @@ void Engine::Render() {
     camera.ProcessInput(window);
     camera.Update();
 
+    scene->Update();
     LoadObject2Buffers(scene->root);
     ShadowCapture();
     ResetViewport();
@@ -79,9 +80,6 @@ void Engine::RenderScene() {
 }
 
 void Engine::LoadObject2Buffers(SceneObject* object) {
-    // update _transforms
-    object->UpdateTransform();
-
     // check compenets and add em
     if (object->mesh) {
         meshObjects.push_back(object);

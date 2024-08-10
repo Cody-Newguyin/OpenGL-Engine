@@ -50,7 +50,8 @@ int main(int, char**){
 
     // Load basic material
     BasicMaterial testMaterial = BasicMaterial("textures/texture.png");
-
+    BasicMaterial marbleMaterial = BasicMaterial("textures/texture.png", "textures/heights.png", NORM_MAP_BUMP);
+    
     // Load meshes
     Cube cube = Cube();
     Sphere sphere = Sphere(30, 30);
@@ -58,22 +59,22 @@ int main(int, char**){
     Quad quad = Quad();
 
     // Load objects into scene
-    SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/backpack/backpack.obj");
-    bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
-    bunnyObject->SetName("Bunny");
-    scene.AddObject(bunnyObject);
+    // SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/backpack/backpack.obj");
+    // bunnyObject->SetPosition(glm::vec3(0.0f, -1.0f, 0.0f));
+    // bunnyObject->SetName("Bunny");
+    // scene.AddObject(bunnyObject);
     
-    SceneObject cubeObject = SceneObject(&cube, &testMaterial);
+    SceneObject cubeObject = SceneObject(&cube, &marbleMaterial);
     cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
     scene.AddObject(&cubeObject);
     cubeObject.SetName("Cube");
 
-    SceneObject sphereObject = SceneObject(&sphere, &testMaterial);
+    SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial);
     sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
     scene.AddObject(&sphereObject);
     sphereObject.SetName("Sphere");
 
-    SceneObject planeObject = SceneObject(&plane, &testMaterial);
+    SceneObject planeObject = SceneObject(&plane, &marbleMaterial);
     planeObject.SetPosition(glm::vec3(0.0f, -3.0f, 0.0f));
     planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
@@ -97,29 +98,18 @@ int main(int, char**){
     scene.AddLight(&dirLight0);
     scene.AddObject(&dirLight0);
 
-    // LightObject dirLight1 = LightObject(LIGHT_TYPE_DIR);
-    // dirLight1.rotation = glm::vec3(40.0f, 90.0f, 0.0f);
-    // dirLight1.SetName("DirLight 2");
-    // scene.AddLight(&dirLight1);
-    // scene.AddObject(&dirLight1);
-
     LightObject pointLight0 = LightObject(LIGHT_TYPE_POINT);
-    pointLight0.position = glm::vec3(1.0f, 0.0f, 0.0f);
+    pointLight0.position = glm::vec3(1.0f, 1.0f, 0.0f);
     pointLight0.SetMesh(&sphere);
     pointLight0.SetMaterial(&lightMaterial);
     pointLight0.SetName("PointLight 1");
     scene.AddLight(&pointLight0);
     emptyObject.AddObject(&pointLight0);
 
-    
-
     // Setup GUI
     ImGuiHandler guiHandler = ImGuiHandler();
     guiHandler.Initialize(window, &engine);
     guiHandler.material = &testMaterial;
-
-    //engine.ShadowCapture();
-    //scene.background->SetEnvMap(engine.shadowCubeMaps[0]);
 
     // main loop
     while(!glfwWindowShouldClose(window)) {
@@ -136,8 +126,7 @@ int main(int, char**){
         cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
         emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
         scene.root->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-        scene.root->UpdateTransform();
-        
+
         // Render
         engine.Render();
         guiHandler.Render();

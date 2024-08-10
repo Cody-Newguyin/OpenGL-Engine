@@ -50,7 +50,7 @@ class SceneObject {
     // Alternate transform update that uses glm transform functions
     void UpdateTransformAlt();
     
-    private:
+    protected:
     bool dirty = false;
 };
 

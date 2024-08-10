@@ -6,18 +6,21 @@
 #include <glm.hpp>
 #include <gtc/type_ptr.hpp>
 #include <string>
+#include <vector>
 
 class Shader {
     public:
     unsigned int programID, vertexShaderID, fragmentShaderID, geometryShaderID;
     std::string vertexFilename;
     std::string fragmentFilename;
+    std::vector<std::string> defines;
 
     public:
     Shader();
     void Initialize(std::string vertexFilename, std::string fragmentFilename, std::string geometryFilename = "");
     void Use();
     void Unload();
+    void AddDefine(std::string define);
 
     void SetInt(std::string location, int value);
     void SetBool(std::string location, bool value);
