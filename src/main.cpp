@@ -55,7 +55,7 @@ int main(int, char**){
     // Load meshes
     Plane plane = Plane(2, 2);
     // Cube cube = Cube();
-    Sphere sphere = Sphere(30, 30);
+    Sphere sphere = Sphere(15, 15);
     // Quad quad = Quad();
 
     // Load objects into scene
@@ -82,19 +82,19 @@ int main(int, char**){
     scene.AddObject(&planeObject);
     planeObject.SetName("Plane");
 
-    for (unsigned int i = 0; i < plane.vertices.size(); i++) {
-        // LOG_INFO("normal:");
-        // LOG_GLM(plane.vertices[i].normal);
-        LOG_INFO("tangent:");
-        LOG_GLM(plane.vertices[i].tangent);
-        // LOG_INFO("transpose inverse normal:");
-        // glm::mat3 transform = glm::mat3(glm::transpose(glm::inverse(planeObject.transform)));
-        // glm::vec3 transformedNormal = transform * plane.vertices[i].normal;
-        // LOG_GLM(transformedNormal);
-        LOG_INFO("transformed tangent:");
-        glm::vec3 transformedTan = glm::normalize(glm::mat3(planeObject.transform) * glm::vec3(plane.vertices[i].tangent));
-        LOG_GLM(transformedTan);
-    }
+    // for (unsigned int i = 0; i < sphere.vertices.size(); i++) {
+    //     // LOG_INFO("normal:");
+    //     // LOG_GLM(plane.vertices[i].normal);
+    //     LOG_INFO("tangent:");
+    //     LOG_GLM(sphere.vertices[i].tangent);
+    //     // LOG_INFO("transpose inverse normal:");
+    //     // glm::mat3 transform = glm::mat3(glm::transpose(glm::inverse(sphereObject.transform)));
+    //     // glm::vec3 transformedNormal = transform * plane.vertices[i].normal;
+    //     // LOG_GLM(transformedNormal);
+    //     LOG_INFO("transformed tangent:");
+    //     glm::vec3 transformedTan = glm::normalize(glm::mat3(sphereObject.transform) * glm::vec3(sphere.vertices[i].tangent));
+    //     LOG_GLM(transformedTan);
+    // }
 
     // SceneObject quadObject = SceneObject(&quad, &testMaterial);
     // quadObject.SetPosition(glm::vec3(0.0f, 0.0f, -5.0f));

@@ -1,6 +1,8 @@
 #include "sphere.h"
 
 Sphere::Sphere(unsigned int xSegments, unsigned int ySegments) {
+    this->Log = false;
+    
     for (unsigned int y = 0; y <= ySegments; y++) {
         for (unsigned int x = 0; x <= xSegments; x++) {
             float xSegment = (float)x / (float)xSegments;

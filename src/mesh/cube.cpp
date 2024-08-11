@@ -1,6 +1,8 @@
 #include "mesh/cube.h"
 
 Cube::Cube() {
+    this->Log = false;
+
     std::vector<glm::vec3> positions = {
         glm::vec3(-0.5f, -0.5f, -0.5f),
         glm::vec3( 0.5f,  0.5f, -0.5f), 

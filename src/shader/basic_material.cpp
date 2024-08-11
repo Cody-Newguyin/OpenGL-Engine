@@ -27,12 +27,12 @@ BasicMaterial::BasicMaterial(std::string mainFile, std::string normalFile, NORM_
             normalMap = Texture();
             normalMap.LoadTexture(normalFile, GL_RGB);
             SetTexture("_normalMap", &normalMap);
-            LOG_INFO("normal map set");
+            // LOG_INFO("normal map set");
         } else if (type = NORM_MAP_BUMP) {
             bumpMap = Texture();
             bumpMap.LoadTexture(normalFile, GL_RED);
             SetTexture("_bumpMap", &bumpMap);
-            LOG_INFO("bump map set");
+            // LOG_INFO("bump map set");
         }
     }
 
