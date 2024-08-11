@@ -160,21 +160,25 @@ void InitializeFragmentNormal() {
         float v2 = texture(_bumpMap, i.uv + dv).r ; 
 
         vec3 tangentSpaceNormal = normalize(vec3(u1 - u2, 1, v1 - v2));
-
-        vec3 binormal = cross(input.normal, input.tangent.xyz) * input.tangent.w;
+        vec3 tangent = vec3(1.0, 0.0, 0.0);
+        vec3 normal = vec3(0.0, 0.0, 1.0);
+        vec3 binormal = vec3(0.0, 1.0, 0.0);
+        // vec3 binormal = cross(normal, tangent);
+        // vec3 binormal = cross(input.normal, input.tangent)
         input.normal = normalize(
-            tangentSpaceNormal.x * input.tangent.xyz +
+            tangentSpaceNormal.x * tangent +
             tangentSpaceNormal.y * binormal +
-            tangentSpaceNormal.z * input.normal
+            tangentSpaceNormal.z * normal
         );
+        input.normal = normalize(i.normal);
     #endif
 }
 
 void InitializeInput() {
     input.uv = i.uv;
-    input.normal = i.normal;
+    input.normal = normalize(i.normal);
     input.worldPos = i.worldPos;
-    input.tangent = i.tangent;
+    input.tangent = normalize(i.tangent);
 
     InitializeFragmentNormal();
 }
@@ -183,8 +187,7 @@ void main() {
     InitializeInput();
 
     #ifdef BUMP_MAP
-        float height = texture(_bumpMap, input.uv).r;
-        vec3 albedo = vec3(0.1, 0.3, 0.1);
+        vec3 albedo = vec3(0.1, 0.6, 0.1);
     #else
         vec3 albedo = texture(_mainTex, input.uv).rgb;
     #endif

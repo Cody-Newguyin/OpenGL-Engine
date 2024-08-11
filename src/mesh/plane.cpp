@@ -1,6 +1,8 @@
 #include "mesh/plane.h"
 
 Plane::Plane(unsigned int xSegments, unsigned int ySegments) {
+    this->Log = true;
+    
     float dx = 2.0f / xSegments;
     float dy = 2.0f / ySegments;
 

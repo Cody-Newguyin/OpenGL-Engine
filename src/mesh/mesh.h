@@ -24,7 +24,8 @@ class Mesh {
     
     bool EBOenabled; // Draw with indices if true
     unsigned int primitive = GL_TRIANGLES; // Defines the primitive drawn
-
+    bool Log = false;
+    
     public:
     Mesh();
     void LoadBuffers();

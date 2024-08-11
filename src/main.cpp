@@ -53,10 +53,12 @@ int main(int, char**){
     BasicMaterial marbleMaterial = BasicMaterial("textures/texture.png", "textures/heights.png", NORM_MAP_BUMP);
     
     // Load meshes
-    Cube cube = Cube();
+    LOG_INFO("START");
+    Plane plane = Plane(2, 2);
+    LOG_INFO("END");
+    // Cube cube = Cube();
     Sphere sphere = Sphere(30, 30);
-    Plane plane = Plane(10, 10);
-    Quad quad = Quad();
+    // Quad quad = Quad();
 
     // Load objects into scene
     // SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/backpack/backpack.obj");
@@ -64,15 +66,15 @@ int main(int, char**){
     // bunnyObject->SetName("Bunny");
     // scene.AddObject(bunnyObject);
     
-    SceneObject cubeObject = SceneObject(&cube, &marbleMaterial);
-    cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
-    scene.AddObject(&cubeObject);
-    cubeObject.SetName("Cube");
+    // SceneObject cubeObject = SceneObject(&cube, &marbleMaterial);
+    // cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
+    // scene.AddObject(&cubeObject);
+    // cubeObject.SetName("Cube");
 
-    SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial);
-    sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
-    scene.AddObject(&sphereObject);
-    sphereObject.SetName("Sphere");
+    // SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial);
+    // sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
+    // scene.AddObject(&sphereObject);
+    // sphereObject.SetName("Sphere");
 
     SceneObject planeObject = SceneObject(&plane, &marbleMaterial);
     planeObject.SetPosition(glm::vec3(0.0f, -3.0f, 0.0f));
@@ -81,10 +83,10 @@ int main(int, char**){
     scene.AddObject(&planeObject);
     planeObject.SetName("Plane");
 
-    SceneObject quadObject = SceneObject(&quad, &testMaterial);
-    quadObject.SetPosition(glm::vec3(0.0f, 0.0f, -5.0f));
-    //scene.AddObject(&quadObject);
-    quadObject.SetName("Quad 1");
+    // SceneObject quadObject = SceneObject(&quad, &testMaterial);
+    // quadObject.SetPosition(glm::vec3(0.0f, 0.0f, -5.0f));
+    // scene.AddObject(&quadObject);
+    // quadObject.SetName("Quad 1");
 
     // Empty parent to rotate about
     SceneObject emptyObject = SceneObject();
@@ -123,7 +125,7 @@ int main(int, char**){
         guiHandler.Update();
 
         // Update scene here
-        cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
+        // cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
         emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
         scene.root->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
