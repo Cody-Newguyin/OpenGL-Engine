@@ -53,9 +53,7 @@ int main(int, char**){
     BasicMaterial marbleMaterial = BasicMaterial("textures/texture.png", "textures/heights.png", NORM_MAP_BUMP);
     
     // Load meshes
-    LOG_INFO("START");
     Plane plane = Plane(2, 2);
-    LOG_INFO("END");
     // Cube cube = Cube();
     Sphere sphere = Sphere(30, 30);
     // Quad quad = Quad();
@@ -71,17 +69,32 @@ int main(int, char**){
     // scene.AddObject(&cubeObject);
     // cubeObject.SetName("Cube");
 
-    // SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial);
-    // sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
-    // scene.AddObject(&sphereObject);
-    // sphereObject.SetName("Sphere");
+    SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial);
+    sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
+    scene.AddObject(&sphereObject);
+    sphereObject.SetName("Sphere");
 
     SceneObject planeObject = SceneObject(&plane, &marbleMaterial);
     planeObject.SetPosition(glm::vec3(0.0f, -3.0f, 0.0f));
     planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
+    planeObject.UpdateTransform();
     scene.AddObject(&planeObject);
     planeObject.SetName("Plane");
+
+    for (unsigned int i = 0; i < plane.vertices.size(); i++) {
+        // LOG_INFO("normal:");
+        // LOG_GLM(plane.vertices[i].normal);
+        LOG_INFO("tangent:");
+        LOG_GLM(plane.vertices[i].tangent);
+        // LOG_INFO("transpose inverse normal:");
+        // glm::mat3 transform = glm::mat3(glm::transpose(glm::inverse(planeObject.transform)));
+        // glm::vec3 transformedNormal = transform * plane.vertices[i].normal;
+        // LOG_GLM(transformedNormal);
+        LOG_INFO("transformed tangent:");
+        glm::vec3 transformedTan = glm::normalize(glm::mat3(planeObject.transform) * glm::vec3(plane.vertices[i].tangent));
+        LOG_GLM(transformedTan);
+    }
 
     // SceneObject quadObject = SceneObject(&quad, &testMaterial);
     // quadObject.SetPosition(glm::vec3(0.0f, 0.0f, -5.0f));
@@ -111,7 +124,7 @@ int main(int, char**){
     // Setup GUI
     ImGuiHandler guiHandler = ImGuiHandler();
     guiHandler.Initialize(window, &engine);
-    guiHandler.material = &testMaterial;
+    guiHandler.material = &marbleMaterial;
 
     // main loop
     while(!glfwWindowShouldClose(window)) {

@@ -41,47 +41,13 @@ void Mesh::LoadBuffers() {
 }
 
 void Mesh::CalculateTangents() {
-    // for (unsigned int i = 0; i < indices.size(); i++) {
-    //     int j = indices[i];
-    //     int k = indices[(i + 1) % 3 + i / 3 * 3];
-    //     int l = indices[(i + 2) % 3 + i / 3 * 3];
-
-    //     glm::vec3 deltaPos1 = vertices[k].position - vertices[j].position;
-    //     glm::vec3 deltaPos2 = vertices[l].position - vertices[j].position;
-    //     glm::vec2 deltaUV1 = vertices[k].uv - vertices[j].uv;
-    //     glm::vec2 deltaUV2 = vertices[l].uv - vertices[j].uv;
-
-    //     glm::vec3 normal = vertices[j].normal;
-    //     float flip = (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x) > 0 ? 1 : -1;
-    //     // LOG_INFO(flip);
-
-    //     deltaPos1 -= normal * glm::dot(deltaPos1, normal);
-    //     deltaPos2 -= normal * glm::dot(deltaPos2, normal);
-
-    //     float angle = std::acos(dot(deltaPos1, deltaPos2) / (length(deltaPos1) * length(deltaPos2)));
-    //     glm::vec3 tangent = normalize(deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * flip * angle;
-
-    //     vertices[j].tangent = tangent;
-    // }
+    if (Log) LOG_INFO("START");
+    for (unsigned int i = 0; i < vertices.size(); i++) vertices[i].tangent = glm::vec4(0.0f);
+    for (unsigned int i = 0; i < indices.size(); i++) {
+        int j = indices[i];
+        int k = indices[(i + 1) % 3 + i / 3 * 3];
+        int l = indices[(i + 2) % 3 + i / 3 * 3];
     
-    // LOG_INFO(vertices.size());
-    for (unsigned int i = 0; i < vertices.size(); i++) {
-        int j = i;
-        int k = (i + 1) % 3 + i / 3 * 3;
-        int l = (i + 2) % 3 + i / 3 * 3;
-
-        // LOG_INFO(j);
-        // LOG_INFO(k);
-        // LOG_INFO(l);
-        if (EBOenabled) {
-            j = indices[j];
-            k = indices[k];
-            l = indices[l];
-            // LOG_INFO(j);
-            // LOG_INFO(k);
-            // LOG_INFO(l);
-        }
-
         glm::vec3 deltaPos1 = vertices[k].position - vertices[j].position;
         glm::vec3 deltaPos2 = vertices[l].position - vertices[j].position;
         glm::vec2 deltaUV1 = vertices[k].uv - vertices[j].uv;
@@ -89,52 +55,23 @@ void Mesh::CalculateTangents() {
         glm::vec3 normal = vertices[j].normal;
 
         float flip = (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x) > 0 ? 1 : -1;
-        // LOG_INFO("Flip: ");
-        // LOG_INFO(flip);
 
         deltaPos1 -= normal * glm::dot(deltaPos1, normal);
         deltaPos2 -= normal * glm::dot(deltaPos2, normal);
-        // LOG_INFO("deltaPos 1: ");
-        // LOG_GLM(deltaPos1);
-        // LOG_INFO("deltaPos 2: ");
-        // LOG_GLM(deltaPos2);
 
         float angle = std::acos(dot(deltaPos1, deltaPos2) / (length(deltaPos1) * length(deltaPos2)));
-        // LOG_INFO("angle: ");
-        // LOG_INFO(angle);
+        // if (Log) LOG_INFO("angle: ");
+        // if (Log) LOG_INFO(angle);
         glm::vec3 tangent = normalize((deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * flip);
-        // LOG_GLM(tangent);
-        vertices[j].tangent = glm::vec4(glm::normalize(tangent * angle), -flip);
-        if (Log) {
-            LOG_GLM(vertices[j].tangent);
-        }
+        // if (Log) LOG_GLM(tangent);
+        vertices[j].tangent.w = -flip;
+        vertices[j].tangent += glm::vec4((tangent * angle), 0);
     }
-
-    
-
-    // for (unsigned int i = 0; i < vertices.size(); i += 3) {
-    //     unsigned int j = (i + 1);
-    //     unsigned int k = (i + 2);
-
-    //     glm::vec3 deltaPos1 = vertices[j].position - vertices[i].position;
-    //     glm::vec3 deltaPos2 = vertices[k].position - vertices[i].position;
-    //     glm::vec2 deltaUV1 = vertices[j].uv - vertices[i].uv;
-    //     glm::vec2 deltaUV2 = vertices[k].uv - vertices[i].uv;
-
-    //     glm::vec3 normal = vertices[i].normal;
-
-    //     float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-    //     glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-    //     glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
-        
-    //     tangent = glm::normalize(tangent - normal * glm::dot(normal, tangent));
-    //     // if (glm::dot(glm::cross(normal, tangent), bitangent) < 0.0f) {
-    //     //     tangent = tangent * -1.0f;
-    //     // }
-    //     vertices[i].tangent = tangent;
-    //     vertices[j].tangent = tangent;
-    //     vertices[k].tangent = tangent;
-    // }
+    for (unsigned int i = 0; i < vertices.size(); i++) {
+        vertices[i].tangent = glm::vec4(glm::normalize(glm::vec3(vertices[i].tangent)), vertices[i].tangent.w);
+        if (Log) LOG_GLM(vertices[i].tangent);
+    }
+    if (Log) LOG_INFO("END");
 }
 
 void Mesh::LoadData() {
