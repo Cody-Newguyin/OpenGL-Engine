@@ -59,27 +59,29 @@ int main(int, char**){
     // Quad quad = Quad();
 
     // Load objects into scene
-    SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/bunny.obj");
-    bunnyObject->SetPosition(glm::vec3(0.0f, -1.0f, 0.0f));
+    SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/bmw/bmw.obj");
+    bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
+    bunnyObject->SetRotation(glm::vec3(0.0f, 90.0f, 0.0f));
+    bunnyObject->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
     bunnyObject->SetName("Bunny");
     scene.AddObject(bunnyObject);
     
     SceneObject cubeObject = SceneObject(&cube, &marbleMaterial);
     cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
     cubeObject.SetName("Cube");
-    //scene.AddObject(&cubeObject);
+    scene.AddObject(&cubeObject);
 
     SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial);
     sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
     sphereObject.SetName("Sphere");
-    //scene.AddObject(&sphereObject);
+    scene.AddObject(&sphereObject);
 
     SceneObject planeObject = SceneObject(&plane, &marbleMaterial);
     planeObject.SetPosition(glm::vec3(0.0f, -3.0f, 0.0f));
     planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
     planeObject.SetName("Plane");
-    //scene.AddObject(&planeObject);
+    scene.AddObject(&planeObject);
     
     // Empty parent to rotate about
     SceneObject emptyObject = SceneObject();

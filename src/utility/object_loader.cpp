@@ -26,12 +26,15 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
     BasicMaterial* defaultMaterial = new BasicMaterial();
     std::vector<BasicMaterial*> basicMaterials;
     for (size_t m = 0; m < materials.size(); m++) {
-        BasicMaterial* basicMaterial = new BasicMaterial(directory + materials[m].diffuse_texname);
-        basicMaterials.push_back(basicMaterial);
+        if (!materials[m].diffuse_texname.empty()) {
+            BasicMaterial* basicMaterial = new BasicMaterial(directory + materials[m].diffuse_texname);
+            basicMaterials.push_back(basicMaterial);
+        }
     }
 
     SceneObject* object = new SceneObject();
 
+    LOG_INFO("Number of child objects: " + std::to_string(shapes.size()));
     for (size_t s = 0; s < shapes.size(); s++) {
         Mesh* mesh = new Mesh();
         VertexData vertex;
@@ -75,14 +78,14 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
         }
         mesh->LoadBuffers();
 
-        int matID = shapes[s].mesh.material_ids[0];
-        Material* material;
-        if (matID == -1)  {
-            material = defaultMaterial;
-        } else {
-            material = basicMaterials[matID];
-        }
-        SceneObject* childObject = new SceneObject(mesh, material);
+        // int matID = shapes[s].mesh.material_ids[0];
+        // Material* material;
+        // if (matID == -1)  {
+        //     material = defaultMaterial;
+        // } else {
+        //     material = basicMaterials[matID];
+        // }
+        SceneObject* childObject = new SceneObject(mesh, defaultMaterial);
         object->AddObject(childObject);
     }
     
