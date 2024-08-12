@@ -5,9 +5,9 @@ BasicMaterial::BasicMaterial(std::string mainFile, std::string normalFile, NORM_
     // Load Shader
     BasicShader = Shader();
     if (!normalFile.empty()) {
-        if (type = NORM_MAP_NORM) {
+        if (type == NORM_MAP_NORM) {
             BasicShader.AddDefine("NORMAL_MAP");
-        } else if (type = NORM_MAP_BUMP) {
+        } else if (type == NORM_MAP_BUMP) {
             BasicShader.AddDefine("BUMP_MAP");
         }
     }
@@ -23,12 +23,12 @@ BasicMaterial::BasicMaterial(std::string mainFile, std::string normalFile, NORM_
     SetTexture("_detailTex", &detailTex);
 
     if (!normalFile.empty()) {
-        if (type = NORM_MAP_NORM) {
+        if (type == NORM_MAP_NORM) {
             normalMap = Texture();
             normalMap.LoadTexture(normalFile, GL_RGB);
             SetTexture("_normalMap", &normalMap);
             // LOG_INFO("normal map set");
-        } else if (type = NORM_MAP_BUMP) {
+        } else if (type == NORM_MAP_BUMP) {
             bumpMap = Texture();
             bumpMap.LoadTexture(normalFile, GL_RED);
             SetTexture("_bumpMap", &bumpMap);

@@ -5,6 +5,7 @@
 #include "shader/material.h"
 
 enum NORM_MAP_TYPE {
+    NORM_TYPE_NONE,
     NORM_MAP_NORM,
     NORM_MAP_BUMP,
 };
@@ -23,7 +24,7 @@ class BasicMaterial : public Material {
     float metallic = 0.0f;
 
     public:
-    BasicMaterial(std::string mainFile = "textures/white.png", std::string normalFile = "", NORM_MAP_TYPE type = NORM_MAP_NORM);
+    BasicMaterial(std::string mainFile = "textures/white.png", std::string normalFile = "", NORM_MAP_TYPE type = NORM_TYPE_NONE);
     ~BasicMaterial();
 };
 

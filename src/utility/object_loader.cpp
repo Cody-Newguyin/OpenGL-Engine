@@ -7,7 +7,7 @@
 SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
     tinyobj::ObjReader reader;
     tinyobj::ObjReaderConfig reader_config;
-    std::string directory = filename.substr(0, filename.find_last_of("/\\"));
+    std::string directory = filename.substr(0, filename.find_last_of("/\\")) + "/";
     reader_config.mtl_search_path = "";
 
     if (!reader.ParseFromFile(filename, reader_config)) {
@@ -23,11 +23,11 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
     auto& shapes = reader.GetShapes();
     auto& materials = reader.GetMaterials();
 
+    BasicMaterial* defaultMaterial = new BasicMaterial();
     std::vector<BasicMaterial*> basicMaterials;
     for (size_t m = 0; m < materials.size(); m++) {
-        BasicMaterial* basicMaterial = new BasicMaterial(directory + "/" + materials[m].diffuse_texname);
+        BasicMaterial* basicMaterial = new BasicMaterial(directory + materials[m].diffuse_texname);
         basicMaterials.push_back(basicMaterial);
-        // LOG_INFO(directory + "/" + materials[m].diffuse_texname);
     }
 
     SceneObject* object = new SceneObject();
@@ -72,14 +72,19 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
                 mesh->vertices.push_back(vertex);
             }
             index_offset += fv;
-            // LOG_INFO(shapes[s].mesh.material_ids[f]);
         }
         mesh->LoadBuffers();
-        // LOG_INFO(basicMaterials.size());
-        // LOG_INFO(shapes[s].mesh.material_ids[f]);
-        SceneObject* childObject = new SceneObject(mesh, basicMaterials[shapes[s].mesh.material_ids[0]]);
+
+        int matID = shapes[s].mesh.material_ids[0];
+        Material* material;
+        if (matID == -1)  {
+            material = defaultMaterial;
+        } else {
+            material = basicMaterials[matID];
+        }
+        SceneObject* childObject = new SceneObject(mesh, material);
         object->AddObject(childObject);
     }
-
+    
     return object;
 }

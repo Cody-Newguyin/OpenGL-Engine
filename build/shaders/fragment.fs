@@ -169,6 +169,7 @@ void InitializeFragmentNormal() {
         vec3 binormal = cross(input.normal, input.tangent.xyz) * input.tangent.w;
         // vec3 binormal = cross(input.normal, input.tangent)
 
+        // Why is normal and binormal reversed???
         input.normal = normalize(
             tangentSpaceNormal.x * input.tangent.xyz +
             tangentSpaceNormal.y * input.normal +

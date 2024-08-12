@@ -90,7 +90,7 @@ void Mesh::CalculateTangents() {
             int j = i;
             int k = (i + 1) % 3 + i / 3 * 3;
             int l = (i + 2) % 3 + i / 3 * 3;
-            if (Log) LOG_ERROR("Vertex: " + std::to_string(j));
+
             glm::vec3 deltaPos1 = vertices[k].position - vertices[j].position;
             glm::vec3 deltaPos2 = vertices[l].position - vertices[j].position;
             glm::vec2 deltaUV1 = vertices[k].uv - vertices[j].uv;
@@ -99,21 +99,13 @@ void Mesh::CalculateTangents() {
 
             float flip = (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x) > 0 ? 1 : -1;
 
-            if (Log) LOG_GLM(deltaPos1);
-            if (Log) LOG_GLM(deltaPos2);
-
             deltaPos1 -= normal * glm::dot(deltaPos1, normal);
             deltaPos2 -= normal * glm::dot(deltaPos2, normal);
-        
-            if (Log) LOG_GLM(deltaUV1);
-            if (Log) LOG_GLM(deltaUV2);
-            
+
             float angle = std::acos(dot(deltaPos1, deltaPos2) / (length(deltaPos1) * length(deltaPos2)));
-            if (Log) LOG_INFO((length(deltaPos1) * length(deltaPos2)));
-            if (Log) LOG_INFO(angle);
+
             glm::vec3 tangent = normalize((deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * flip);
-            if (Log) LOG_GLM((deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y));
-            if (Log) LOG_GLM(tangent);
+
             vertices[j].tangent.w = -flip;
             vertices[j].tangent += glm::vec4((tangent * angle), 0);
         }
