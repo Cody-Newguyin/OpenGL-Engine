@@ -36,6 +36,7 @@ uniform float _metallic = 0.0f;
 uniform sampler2D _mainTex;
 uniform sampler2D _detailTex;
 uniform sampler2D _bumpMap;
+uniform sampler2D _normalMap;
 
 struct Light {
     vec3 color;
@@ -149,6 +150,8 @@ vec3 PBR_Ambient(vec3 albedo, vec3 specularTint, float smoothness, vec3 normal, 
 }
 
 void InitializeFragmentNormal() {
+    // THIS TANGENT SPACE NORMAL IS SOOOOO BROKEN
+    vec3 tangentSpaceNormal = vec3(0.0, 1.0, 0.0);
     #ifdef BUMP_MAP
         vec2 texelSize = 1.0 / textureSize(_bumpMap, 0);
         float scale = 3.0;
@@ -161,9 +164,19 @@ void InitializeFragmentNormal() {
         float v1 = texture(_bumpMap, i.uv - dv).r * scale;
         float v2 = texture(_bumpMap, i.uv + dv).r * scale; 
 
-        vec3 tangentSpaceNormal = normalize(vec3(u1 - u2, 1, v1 - v2));
+        tangentSpaceNormal = normalize(vec3(u1 - u2, 1, v1 - v2));
+    #endif
+    #ifdef NORMAL_MAP
+        tangentSpaceNormal = texture(_normalMap, i.uv).rgb;
+        tangentSpaceNormal = normalize(tangentSpaceNormal * 2.0 - 1.0);
         vec3 binormal = cross(input.normal, input.tangent.xyz) * input.tangent.w;
-
+        input.normal = normalize(
+            tangentSpaceNormal.x * input.tangent.xyz +
+            tangentSpaceNormal.y * binormal +
+            tangentSpaceNormal.z * input.normal
+        );
+    #else
+        vec3 binormal = cross(input.normal, input.tangent.xyz) * input.tangent.w;
         // Why is normal and binormal reversed???
         input.normal = normalize(
             tangentSpaceNormal.x * input.tangent.xyz +

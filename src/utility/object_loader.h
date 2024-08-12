@@ -17,7 +17,7 @@ class ObjectLoader {
 
     public:
     ObjectLoader();
-    SceneObject* ReadObjFile(std::string filename);
+    SceneObject* ReadObjFile(std::string filename, bool useDefault = true);
 };
 
 #endif

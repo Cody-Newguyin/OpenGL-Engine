@@ -25,6 +25,7 @@ class BasicMaterial : public Material {
     glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
     float smoothness = 0.5f;
     float metallic = 0.0f;
+    float bumpScale = 1.0f;
 
     std::string mainFile = "textures/white.png";
     std::string detailFile = "textures/white.png";

@@ -41,7 +41,6 @@ int main(int, char**){
     Engine engine = Engine();
     engine.Initialize(window, &scene);
     
-    ObjectLoader objLoader = ObjectLoader();
     std::vector<BasicMaterial*> materials;
 
     // Load Shader
@@ -52,16 +51,22 @@ int main(int, char**){
     lightMaterial.SetShader(&lightShader);
 
     // Load basic materials
-    BasicMaterial testMaterial = BasicMaterial("Test");
-    testMaterial.Initalize();
-    BasicMaterial marbleMaterial = BasicMaterial("Marble");
-    marbleMaterial.SetMainFile("textures/marble.png");
-    marbleMaterial.SetNormalFile("textures/heights.png", NORM_MAP_BUMP);
-    marbleMaterial.Initalize();
-    
-    materials.push_back(objLoader.defaultMat);
-    materials.push_back(&testMaterial);
-    materials.push_back(&marbleMaterial);
+    BasicMaterial defaultMat = BasicMaterial("Default");
+    defaultMat.Initalize();
+
+    BasicMaterial marbleMat = BasicMaterial("Marble");
+    marbleMat.SetMainFile("textures/marble.png");
+    marbleMat.SetNormalFile("textures/heights.png", NORM_MAP_BUMP);
+    marbleMat.Initalize();
+
+    BasicMaterial circuitMat = BasicMaterial("Circuit");
+    // circuitMat.SetMainFile("textures/circuitry-albedo.png");
+    circuitMat.SetNormalFile("textures/circuitry-normals.png", NORM_MAP_NORM);
+    circuitMat.Initalize();
+
+    materials.push_back(&defaultMat);
+    materials.push_back(&marbleMat);
+    materials.push_back(&circuitMat);
 
     // Load meshes
     Plane plane = Plane(2, 2);
@@ -69,23 +74,29 @@ int main(int, char**){
     Sphere sphere = Sphere(15, 15);
     // Quad quad = Quad();
 
+    // Setup object loader
+    ObjectLoader objLoader = ObjectLoader();
+    objLoader.defaultMat = &circuitMat;
+
     // Load objects into scene
-    SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/bmw/bmw.obj");
+    SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/bmw/bmw.obj", true);
     bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
     bunnyObject->SetRotation(glm::vec3(0.0f, 90.0f, 0.0f));
     bunnyObject->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
     bunnyObject->SetName("Bunny");
     scene.AddObject(bunnyObject);
+    // get materials as well
+    materials.insert(materials.end(), objLoader.storedMats.begin(), objLoader.storedMats.end());
     
-    SceneObject cubeObject = SceneObject(&cube, &marbleMaterial, "Cube");
+    SceneObject cubeObject = SceneObject(&cube, &circuitMat, "Cube");
     cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
     scene.AddObject(&cubeObject);
 
-    SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial, "Sphere");
+    SceneObject sphereObject = SceneObject(&sphere, &circuitMat, "Sphere");
     sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
     scene.AddObject(&sphereObject);
 
-    SceneObject planeObject = SceneObject(&plane, &marbleMaterial, "Plane");
+    SceneObject planeObject = SceneObject(&plane, &circuitMat, "Plane");
     planeObject.SetPosition(glm::vec3(0.0f, -3.0f, 0.0f));
     planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));

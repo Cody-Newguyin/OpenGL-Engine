@@ -9,7 +9,7 @@ ObjectLoader::ObjectLoader() {
     defaultMat->Initalize();
 }
 
-SceneObject *ObjectLoader::ReadObjFile(std::string filename) {
+SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault) {
     tinyobj::ObjReader reader;
     tinyobj::ObjReaderConfig reader_config;
     std::string directory = filename.substr(0, filename.find_last_of("/\\")) + "/";
@@ -30,18 +30,19 @@ SceneObject *ObjectLoader::ReadObjFile(std::string filename) {
 
     // Create list of materials
     storedMats.clear();
-    for (size_t m = 0; m < materials.size(); m++) {
-        BasicMaterial* basicMat = new BasicMaterial(materials[m].name);
-        if (!materials[m].diffuse_texname.empty()) {
-            basicMat->SetMainFile(directory + materials[m].diffuse_texname);
-        }
-        basicMat->Initalize();
-        storedMats.push_back(basicMat);
+    if (!useDefault) {
+        for (size_t m = 0; m < materials.size(); m++) {
+            BasicMaterial* basicMat = new BasicMaterial(materials[m].name);
+            if (!materials[m].diffuse_texname.empty()) {
+                basicMat->SetMainFile(directory + materials[m].diffuse_texname);
+            }
+            basicMat->Initalize();
+            storedMats.push_back(basicMat);
+        }   
     }
-
-    SceneObject* object = new SceneObject();
-
+    
     LOG_INFO("Number of child objects: " + std::to_string(shapes.size()));
+    SceneObject* object = new SceneObject();
     for (size_t s = 0; s < shapes.size(); s++) {
         Mesh* mesh = new Mesh();
         VertexData vertex;
@@ -83,19 +84,18 @@ SceneObject *ObjectLoader::ReadObjFile(std::string filename) {
             }
             index_offset += fv;
         }
-        
         // Set material to default if unspecified or to the firsts face's material
-        // int matID = shapes[s].mesh.material_ids[0];
-        // Material* material;
-        // if (matID == -1)  {
-        //     material = defaultMat;
-        // } else {
-        //     material = storedMats[matID];
-        // }
+        int matID = shapes[s].mesh.material_ids[0];
+        Material* material;
+        if (matID == -1 || useDefault)  {
+            material = defaultMat;
+        } else {
+            material = storedMats[matID];
+        }
         
         // Finalize and add as child object;
         mesh->LoadBuffers();
-        SceneObject* childObject = new SceneObject(mesh, defaultMat);
+        SceneObject* childObject = new SceneObject(mesh, material);
         object->AddObject(childObject);
     }
     
