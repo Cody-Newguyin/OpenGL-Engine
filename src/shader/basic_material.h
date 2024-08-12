@@ -18,14 +18,26 @@ class BasicMaterial : public Material {
     Texture detailTex;
     Texture bumpMap;
     Texture normalMap;
+    NORM_MAP_TYPE type = NORM_TYPE_NONE;
+
     glm::vec4 mainTex_ST = glm::vec4(1.0f, 1.0f, 0.0f, 0.0f);
     glm::vec4 detailTex_ST = glm::vec4(1.0f, 1.0f, 0.0f, 0.0f);
+    glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
     float smoothness = 0.5f;
     float metallic = 0.0f;
 
+    std::string mainFile = "textures/white.png";
+    std::string detailFile = "textures/white.png";
+    std::string normalFile = "";
+    
     public:
-    BasicMaterial(std::string mainFile = "textures/white.png", std::string normalFile = "", NORM_MAP_TYPE type = NORM_TYPE_NONE);
-    ~BasicMaterial();
+    BasicMaterial(std::string name = "text");
+    ~BasicMaterial(); 
+    void Initalize();
+
+    void SetMainFile(std::string filename);
+    void SetDetailFile(std::string filename);
+    void SetNormalFile(std::string filename, NORM_MAP_TYPE type);
 };
 
 #endif

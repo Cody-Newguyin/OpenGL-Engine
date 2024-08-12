@@ -1,8 +1,17 @@
 #include "shader/basic_material.h"
 #include "log/log.h"
+#include "basic_material.h"
 
-BasicMaterial::BasicMaterial(std::string mainFile, std::string normalFile, NORM_MAP_TYPE type) {
-    // Load Shader
+BasicMaterial::BasicMaterial(std::string name) {
+   this->name = name;
+}
+
+BasicMaterial::~BasicMaterial() {
+    BasicShader.Unload();
+}
+
+void BasicMaterial::Initalize() {
+     // Load Shader
     BasicShader = Shader();
     if (!normalFile.empty()) {
         if (type == NORM_MAP_NORM) {
@@ -19,7 +28,7 @@ BasicMaterial::BasicMaterial(std::string mainFile, std::string normalFile, NORM_
     SetTexture("_mainTex", &mainTex);
 
     detailTex = Texture();
-    detailTex.LoadTexture("textures/grid.png", GL_RED);
+    detailTex.LoadTexture(detailFile, GL_RED);
     SetTexture("_detailTex", &detailTex);
 
     if (!normalFile.empty()) {
@@ -43,6 +52,16 @@ BasicMaterial::BasicMaterial(std::string mainFile, std::string normalFile, NORM_
     SetShader(&BasicShader);
 }
 
-BasicMaterial::~BasicMaterial() {
-    BasicShader.Unload();
+
+void BasicMaterial::SetMainFile(std::string filename) {
+    this->mainFile = filename;
+}
+
+void BasicMaterial::SetDetailFile(std::string filename) {
+    this->detailFile = filename;
+}
+
+void BasicMaterial::SetNormalFile(std::string filename, NORM_MAP_TYPE type) {
+    this->normalFile = filename;
+    this->type = type;
 }

@@ -1,7 +1,7 @@
 #include "material.h"
 
-Material::Material() {
-
+Material::Material(std::string name) {
+    this->name = name;
 }
 
 int Material::BindUniforms() {

@@ -13,23 +13,27 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
     if (!reader.ParseFromFile(filename, reader_config)) {
         if(!reader.Error().empty()) {
             LOG_ERROR("TINYOBJ: " + reader.Error());
+            return NULL;
         }
     }
     if (!reader.Warning().empty()) {
-        LOG_ERROR("TINYOBJ: " + reader.Warning());
+        // LOG_ERROR("TINYOBJ: " + reader.Warning());
     }
-
     auto& attrib = reader.GetAttrib();
     auto& shapes = reader.GetShapes();
     auto& materials = reader.GetMaterials();
 
-    BasicMaterial* defaultMaterial = new BasicMaterial();
+    BasicMaterial* defaultMaterial = new BasicMaterial("Test Mat");
+    defaultMaterial->Initalize();
+
     std::vector<BasicMaterial*> basicMaterials;
     for (size_t m = 0; m < materials.size(); m++) {
+        BasicMaterial* basicMaterial = new BasicMaterial(materials[m].name);
         if (!materials[m].diffuse_texname.empty()) {
-            BasicMaterial* basicMaterial = new BasicMaterial(directory + materials[m].diffuse_texname);
-            basicMaterials.push_back(basicMaterial);
+            basicMaterial->SetMainFile(directory + materials[m].diffuse_texname);
         }
+        basicMaterial->Initalize();
+        basicMaterials.push_back(basicMaterial);
     }
 
     SceneObject* object = new SceneObject();

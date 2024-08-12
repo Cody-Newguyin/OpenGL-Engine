@@ -53,6 +53,7 @@ struct UniformValue {
 
 class Material {
     public:
+    std::string name = "text";
     Shader* shader = NULL;
     std::vector<UniformValueSampler> uniformSamplers;
     std::vector<UniformValue> uniforms;
@@ -61,7 +62,7 @@ class Material {
     GLenum DepthCompare = GL_LESS;
     
     public:
-    Material();
+    Material(std::string name = "text");
     int BindUniforms();
     void SetShader(Shader* shader);
     void SetTexture(std::string name, Texture *texture);
