@@ -4,7 +4,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
-SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
+ObjectLoader::ObjectLoader() {
+    defaultMat = new BasicMaterial("Default");
+    defaultMat->Initalize();
+}
+
+SceneObject *ObjectLoader::ReadObjFile(std::string filename) {
     tinyobj::ObjReader reader;
     tinyobj::ObjReaderConfig reader_config;
     std::string directory = filename.substr(0, filename.find_last_of("/\\")) + "/";
@@ -23,17 +28,14 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
     auto& shapes = reader.GetShapes();
     auto& materials = reader.GetMaterials();
 
-    BasicMaterial* defaultMaterial = new BasicMaterial("Test Mat");
-    defaultMaterial->Initalize();
-
-    std::vector<BasicMaterial*> basicMaterials;
+    storedMats.clear();
     for (size_t m = 0; m < materials.size(); m++) {
-        BasicMaterial* basicMaterial = new BasicMaterial(materials[m].name);
+        BasicMaterial* basicMat = new BasicMaterial(materials[m].name);
         if (!materials[m].diffuse_texname.empty()) {
-            basicMaterial->SetMainFile(directory + materials[m].diffuse_texname);
+            basicMat->SetMainFile(directory + materials[m].diffuse_texname);
         }
-        basicMaterial->Initalize();
-        basicMaterials.push_back(basicMaterial);
+        basicMat->Initalize();
+        storedMats.push_back(basicMat);
     }
 
     SceneObject* object = new SceneObject();
@@ -85,11 +87,11 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename) {
         // int matID = shapes[s].mesh.material_ids[0];
         // Material* material;
         // if (matID == -1)  {
-        //     material = defaultMaterial;
+        //     material = defaultMat;
         // } else {
-        //     material = basicMaterials[matID];
+        //     material = storedMats[matID];
         // }
-        SceneObject* childObject = new SceneObject(mesh, defaultMaterial);
+        SceneObject* childObject = new SceneObject(mesh, defaultMat);
         object->AddObject(childObject);
     }
     

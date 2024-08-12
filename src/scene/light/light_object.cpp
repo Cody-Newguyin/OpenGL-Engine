@@ -1,11 +1,10 @@
 #include "light_object.h"
 #include "log/log.h"
 
-LightObject::LightObject(LIGHT_TYPE type) {
+LightObject::LightObject(LIGHT_TYPE type, std::string name) {
+    this->name = name;
     this->type = type;
     this->shadowCast = false;
-    this->dirty = true;
-    UpdateTransform();
 }
 
 void LightObject::UpdateTransform() {

@@ -10,7 +10,14 @@
 
 class ObjectLoader {
     public:
-    static SceneObject* ReadObjFile(std::string filename);
+    // The default material for loaded objects when not specified
+    BasicMaterial* defaultMat;
+    // All new materials created for objects are stored here and cleared after calling ReadObjFile
+    std::vector<BasicMaterial*> storedMats;
+
+    public:
+    ObjectLoader();
+    SceneObject* ReadObjFile(std::string filename);
 };
 
 #endif

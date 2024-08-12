@@ -46,7 +46,9 @@ void BasicMaterial::Initalize() {
     }
 
     // Finalize
+    SetVector("_color", &color);
     SetVector("_mainTex_ST", &mainTex_ST);
+    SetVector("_detailTex_ST", &detailTex_ST);
     SetFloat("_smoothness", &smoothness);
     SetFloat("_metallic", &metallic);
     SetShader(&BasicShader);

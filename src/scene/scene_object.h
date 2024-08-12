@@ -32,8 +32,8 @@ class SceneObject {
     SceneObject* parent = NULL;
     
     public:
-    SceneObject();
-    SceneObject(Mesh *mesh, Material *material);
+    SceneObject(std::string name = "text");
+    SceneObject(Mesh *mesh, Material *material, std::string name = "text");
     ~SceneObject();
 
     void AddObject(SceneObject *child);

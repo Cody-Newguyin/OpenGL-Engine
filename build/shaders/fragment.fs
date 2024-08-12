@@ -30,6 +30,7 @@ uniform sampler2D _brdfLUT;
 uniform sampler2D _shadowMap[n_lights];
 uniform samplerCube _shadowCubeMap[n_lights];
 
+uniform vec3 _color = vec3(1.0f);
 uniform float _smoothness = 0.1f;
 uniform float _metallic = 0.0f;
 uniform sampler2D _mainTex;
@@ -98,7 +99,7 @@ float CalculatePointShadow(samplerCube shadowCube, vec3 lightPos) {
     float diskRadius = 0.05;
     for(int i = 0; i < samples; i++) {
         float pcfDepth = texture(shadowCube, lightVec + sampleOffsetDirections[i] * diskRadius).r;
-        pcfDepth *= _farPlane;   // undo mapping [0;1]
+        pcfDepth *= _farPlane;   // undo mapping [0 ; 1]
         shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;   
     }
     shadow /= float(samples);
@@ -153,21 +154,15 @@ void InitializeFragmentNormal() {
         float scale = 3.0;
 
         vec2 du = vec2(texelSize.x * 0.5, 0);
-        float u1 = texture(_bumpMap, i.uv - du).r ;
-        float u2 = texture(_bumpMap, i.uv + du).r ;
+        float u1 = texture(_bumpMap, i.uv - du).r * scale;
+        float u2 = texture(_bumpMap, i.uv + du).r * scale;
 
         vec2 dv = vec2(0, texelSize.y * 0.5);
-        float v1 = texture(_bumpMap, i.uv - dv).r ;
-        float v2 = texture(_bumpMap, i.uv + dv).r ; 
+        float v1 = texture(_bumpMap, i.uv - dv).r * scale;
+        float v2 = texture(_bumpMap, i.uv + dv).r * scale; 
 
         vec3 tangentSpaceNormal = normalize(vec3(u1 - u2, 1, v1 - v2));
-
-        // tangentSpaceNormal = vec3(0.0, 1.0, 0.0);
-        vec3 tangent = vec3(1.0, 0.0, 0.0);
-        vec3 normal = vec3(0.0, 1.0, 0.0);
-        // vec3 binormal = vec3(0.0, 1.0, 0.0);
         vec3 binormal = cross(input.normal, input.tangent.xyz) * input.tangent.w;
-        // vec3 binormal = cross(input.normal, input.tangent)
 
         // Why is normal and binormal reversed???
         input.normal = normalize(
@@ -175,7 +170,6 @@ void InitializeFragmentNormal() {
             tangentSpaceNormal.y * input.normal +
             tangentSpaceNormal.z * binormal
         );
-        // input.normal = normalize(i.normal);
     #endif
 }
 
@@ -191,11 +185,7 @@ void InitializeInput() {
 void main() {
     InitializeInput();
 
-    #ifdef BUMP_MAP
-        vec3 albedo = vec3(0.1, 0.6, 0.1);
-    #else
-        vec3 albedo = texture(_mainTex, input.uv).rgb;
-    #endif
+    vec3 albedo = texture(_mainTex, input.uv).rgb * _color;
 
     vec3 specularTint;
     float oneMinusReflectivity;

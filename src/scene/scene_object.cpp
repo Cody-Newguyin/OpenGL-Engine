@@ -1,10 +1,11 @@
 #include "scene_object.h"
 
-SceneObject::SceneObject() {
-    
+SceneObject::SceneObject(std::string name) {
+    this->name = name;
 }
 
-SceneObject::SceneObject(Mesh *mesh, Material *material) {
+SceneObject::SceneObject(Mesh *mesh, Material *material, std::string name) {
+    this->name = name;
     this->mesh = mesh;
     this->material = material;
 }

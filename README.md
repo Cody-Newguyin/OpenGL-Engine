@@ -25,7 +25,9 @@ Other
     - Object hierarchy structure allows transforms to be relative to one-another
 - Logging utility using the [spdlog library](https://github.com/gabime/spdlog)
 - Editor using [ImGui library](https://github.com/ocornut/imgui)
-    - Edit materials and object transform during runtime
+    - Edit materials and object transforms during runtime
+- Object loading using the [tinyobjloader library](https://github.com/tinyobjloader/tinyobjloader)
+    - Maunally calculates tangents 
 
 ## Building on Windows
 1. Clone repo

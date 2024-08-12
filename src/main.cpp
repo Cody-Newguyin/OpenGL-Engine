@@ -41,6 +41,8 @@ int main(int, char**){
     Engine engine = Engine();
     engine.Initialize(window, &scene);
     
+    ObjectLoader objLoader = ObjectLoader();
+
     // Load Shader
     Shader lightShader = Shader();
     lightShader.Initialize("shaders/light.vs", "shaders/light.fs");
@@ -48,14 +50,14 @@ int main(int, char**){
     Material lightMaterial = Material();
     lightMaterial.SetShader(&lightShader);
 
-    // Load basic material
+    // Load basic materials
     BasicMaterial testMaterial = BasicMaterial("Test Mat");
     testMaterial.Initalize();
     BasicMaterial marbleMaterial = BasicMaterial("Marble Mat");
     marbleMaterial.SetMainFile("textures/marble.png");
     marbleMaterial.SetNormalFile("textures/heights.png", NORM_MAP_BUMP);
     marbleMaterial.Initalize();
-    
+
     // Load meshes
     Plane plane = Plane(2, 2);
     Cube cube = Cube();
@@ -63,47 +65,41 @@ int main(int, char**){
     // Quad quad = Quad();
 
     // Load objects into scene
-    SceneObject* bunnyObject = ObjectLoader::ReadObjFile("meshes/bmw/bmw.obj");
+    SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/bmw/bmw.obj");
     bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
     bunnyObject->SetRotation(glm::vec3(0.0f, 90.0f, 0.0f));
     bunnyObject->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
     bunnyObject->SetName("Bunny");
     scene.AddObject(bunnyObject);
     
-    SceneObject cubeObject = SceneObject(&cube, &marbleMaterial);
+    SceneObject cubeObject = SceneObject(&cube, &marbleMaterial, "Cube");
     cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
-    cubeObject.SetName("Cube");
     scene.AddObject(&cubeObject);
 
-    SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial);
+    SceneObject sphereObject = SceneObject(&sphere, &marbleMaterial, "Sphere");
     sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
-    sphereObject.SetName("Sphere");
     scene.AddObject(&sphereObject);
 
-    SceneObject planeObject = SceneObject(&plane, &marbleMaterial);
+    SceneObject planeObject = SceneObject(&plane, &marbleMaterial, "Plane");
     planeObject.SetPosition(glm::vec3(0.0f, -3.0f, 0.0f));
     planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
-    planeObject.SetName("Plane");
     scene.AddObject(&planeObject);
     
     // Empty parent to rotate about
-    SceneObject emptyObject = SceneObject();
+    SceneObject emptyObject = SceneObject("Empty");
     scene.AddObject(&emptyObject);
-    emptyObject.SetName("Empty");
     
     // Create lights
-    LightObject dirLight0 = LightObject(LIGHT_TYPE_DIR);
+    LightObject dirLight0 = LightObject(LIGHT_TYPE_DIR, "DirLight 1");
     dirLight0.rotation = glm::vec3(-10.0f, 60.0f, 0.0f);
-    dirLight0.SetName("DirLight 1");
     scene.AddLight(&dirLight0);
     scene.AddObject(&dirLight0);
 
-    LightObject pointLight0 = LightObject(LIGHT_TYPE_POINT);
+    LightObject pointLight0 = LightObject(LIGHT_TYPE_POINT, "PointLight 1");
     pointLight0.position = glm::vec3(1.0f, 1.0f, 0.0f);
     pointLight0.SetMesh(&sphere);
     pointLight0.SetMaterial(&lightMaterial);
-    pointLight0.SetName("PointLight 1");
     scene.AddLight(&pointLight0);
     emptyObject.AddObject(&pointLight0);
 

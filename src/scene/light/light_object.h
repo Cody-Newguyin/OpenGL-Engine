@@ -22,7 +22,7 @@ class LightObject : public SceneObject {
     glm::mat4 spaceMatrix;
     
     public:
-    LightObject(LIGHT_TYPE type);
+    LightObject(LIGHT_TYPE type, std::string name = "light");
     void UpdateTransform();
     glm::vec3* GetRealColor();
     
