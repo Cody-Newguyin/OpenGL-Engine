@@ -38,10 +38,6 @@ void ImGuiHandler::Update() {
     ImGui::Checkbox("Wireframe", &engine->wireframe);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     
-    ImGui::SeparatorText("Material");
-    ImGui::SliderFloat("Smoothness", &material->smoothness, 0.0f, 1.0f, "ratio = %.3f");
-    ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f, "ratio = %.3f");
-    
     ImGui::SeparatorText("Lights");
     for (unsigned int i = 0; i < scene->pointLights.size(); i++) {
         ImGui::ColorEdit3(scene->pointLights[i]->name.c_str(), (float*) &scene->pointLights[i]->color);
@@ -52,12 +48,26 @@ void ImGuiHandler::Update() {
         ImGui::SliderFloat("Intensity_Dir_" + i, &scene->dirLights[i]->intensity, 0.0f, 5.0f, "ratio = %.3f");
     }
 
+    ImGui::SeparatorText("Materials");
+    for (unsigned int i = 0; i < materials.size(); i++) {
+        ShowMaterialTreeNode(materials[i], i);
+    }
+
     ImGui::SeparatorText("Objects");
     for (unsigned int i = 0; i < scene->root->children.size(); i++) {
         ShowObjectTreeNode(scene->root->children[i], i);
     }
 
     ImGui::End();
+}
+
+void ImGuiHandler::ShowMaterialTreeNode(BasicMaterial *material, unsigned int id) {
+    if (ImGui::TreeNode((void*)(intptr_t)id, material->name.c_str(), id)) {
+        ImGui::ColorEdit3("", (float*) &material->color);
+        ImGui::SliderFloat("Smoothness", &material->smoothness, 0.0f, 1.0f, "ratio = %.3f");
+        ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f, "ratio = %.3f");
+        ImGui::TreePop();
+    }
 }
 
 void ImGuiHandler::ShowObjectTreeNode(SceneObject *object, unsigned int id) {

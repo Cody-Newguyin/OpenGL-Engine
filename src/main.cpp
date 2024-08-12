@@ -42,6 +42,7 @@ int main(int, char**){
     engine.Initialize(window, &scene);
     
     ObjectLoader objLoader = ObjectLoader();
+    std::vector<BasicMaterial*> materials;
 
     // Load Shader
     Shader lightShader = Shader();
@@ -57,6 +58,10 @@ int main(int, char**){
     marbleMaterial.SetMainFile("textures/marble.png");
     marbleMaterial.SetNormalFile("textures/heights.png", NORM_MAP_BUMP);
     marbleMaterial.Initalize();
+    
+    materials.push_back(objLoader.defaultMat);
+    materials.push_back(&testMaterial);
+    materials.push_back(&marbleMaterial);
 
     // Load meshes
     Plane plane = Plane(2, 2);
@@ -106,7 +111,7 @@ int main(int, char**){
     // Setup GUI
     ImGuiHandler guiHandler = ImGuiHandler();
     guiHandler.Initialize(window, &engine);
-    guiHandler.material = &marbleMaterial;
+    guiHandler.materials = materials;
 
     // main loop
     while(!glfwWindowShouldClose(window)) {

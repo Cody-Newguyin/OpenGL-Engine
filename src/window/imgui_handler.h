@@ -17,7 +17,7 @@ class ImGuiHandler {
     public:
     GLFWwindow *window;
     Engine *engine;
-    BasicMaterial *material;
+    std::vector<BasicMaterial*> materials;
 
     public:
     ImGuiHandler();
@@ -30,6 +30,7 @@ class ImGuiHandler {
 
     private:
     void ShowObjectTreeNode(SceneObject* object, unsigned int id);
+    void ShowMaterialTreeNode(BasicMaterial *material, unsigned int id);
 };
 
 
