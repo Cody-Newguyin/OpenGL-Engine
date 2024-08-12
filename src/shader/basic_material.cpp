@@ -13,6 +13,8 @@ BasicMaterial::~BasicMaterial() {
 void BasicMaterial::Initalize() {
      // Load Shader
     BasicShader = Shader();
+
+    // Set defines based on type of map being sampled (normal map vs height map)
     if (!normalFile.empty()) {
         if (type == NORM_MAP_NORM) {
             BasicShader.AddDefine("NORMAL_MAP");
@@ -36,12 +38,10 @@ void BasicMaterial::Initalize() {
             normalMap = Texture();
             normalMap.LoadTexture(normalFile, GL_RGB);
             SetTexture("_normalMap", &normalMap);
-            // LOG_INFO("normal map set");
         } else if (type == NORM_MAP_BUMP) {
             bumpMap = Texture();
             bumpMap.LoadTexture(normalFile, GL_RED);
             SetTexture("_bumpMap", &bumpMap);
-            // LOG_INFO("bump map set");
         }
     }
 

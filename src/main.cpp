@@ -51,9 +51,9 @@ int main(int, char**){
     lightMaterial.SetShader(&lightShader);
 
     // Load basic materials
-    BasicMaterial testMaterial = BasicMaterial("Test Mat");
+    BasicMaterial testMaterial = BasicMaterial("Test");
     testMaterial.Initalize();
-    BasicMaterial marbleMaterial = BasicMaterial("Marble Mat");
+    BasicMaterial marbleMaterial = BasicMaterial("Marble");
     marbleMaterial.SetMainFile("textures/marble.png");
     marbleMaterial.SetNormalFile("textures/heights.png", NORM_MAP_BUMP);
     marbleMaterial.Initalize();

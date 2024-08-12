@@ -41,50 +41,42 @@ void Mesh::LoadBuffers() {
 }
 
 void Mesh::CalculateTangents() {
-    if (Log) LOG_INFO("START");
-    if (Log) LOG_ERROR(vertices.size());
-    if (Log) LOG_ERROR(indices.size());
     for (unsigned int i = 0; i < vertices.size(); i++) vertices[i].tangent = glm::vec4(0.0f);
+
+    // Loop over indices/vertices and calculate tangents
     if (EBOenabled) {
         for (unsigned int i = 0; i < indices.size(); i++) {
             int j = indices[i];
             int k = indices[(i + 1) % 3 + i / 3 * 3];
             int l = indices[(i + 2) % 3 + i / 3 * 3];
-            if (Log) LOG_ERROR("Vertex: " + std::to_string(j));
-            if (vertices[j].position == vertices[k].position || vertices[k].position == vertices[l].position || vertices[l].position == vertices[j].position) continue;
+
             glm::vec3 deltaPos1 = vertices[k].position - vertices[j].position;
             glm::vec3 deltaPos2 = vertices[l].position - vertices[j].position;
-            if (deltaPos1 == deltaPos2) continue;
             glm::vec2 deltaUV1 = vertices[k].uv - vertices[j].uv;
             glm::vec2 deltaUV2 = vertices[l].uv - vertices[j].uv;
             glm::vec3 normal = vertices[j].normal;
 
+            // Indexed structures might look at non-triangles trios (position is shared between to vertices) which can't have their tangents calculated
+            if (vertices[j].position == vertices[k].position || 
+                vertices[k].position == vertices[l].position || 
+                vertices[l].position == vertices[j].position ||
+                deltaPos1 == deltaPos2) continue;
+
             float flip = (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x) > 0 ? 1 : -1;
-
-            if (Log) LOG_GLM(deltaPos1);
-            if (Log) LOG_GLM(deltaPos2);
-
             deltaPos1 -= normal * glm::dot(deltaPos1, normal);
             deltaPos2 -= normal * glm::dot(deltaPos2, normal);
-        
-            if (Log) LOG_GLM(deltaUV1);
-            if (Log) LOG_GLM(deltaUV2);
-            
             float angle = std::acos(dot(deltaPos1, deltaPos2) / (length(deltaPos1) * length(deltaPos2)));
-            if (Log) LOG_INFO((length(deltaPos1) * length(deltaPos2)));
-            if (Log) LOG_INFO(angle);
+ 
             glm::vec3 tangent = normalize((deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * flip);
-            if (Log) LOG_GLM((deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y));
-            if (Log) LOG_GLM(tangent);
             vertices[j].tangent.w = -flip;
             vertices[j].tangent += glm::vec4((tangent * angle), 0);
         }
+
+        // Average/Normalize tangents, skip vertices without tangents (for some reason...?)
         for (unsigned int i = 0; i < vertices.size(); i++) {
-            if (glm::vec3(vertices[i].tangent) != glm::vec3(0,0,0)) {
-                vertices[i].tangent = glm::vec4(glm::normalize(glm::vec3(vertices[i].tangent)), vertices[i].tangent.w);
-            }
-            if (Log) LOG_GLM(vertices[i].tangent);
+            if (glm::vec3(vertices[i].tangent) != glm::vec3(0,0,0)) vertices[i].tangent = glm::vec4(glm::normalize(glm::vec3(vertices[i].tangent)), vertices[i].tangent.w);
         }
+
     } else {
         for (unsigned int i = 0; i < vertices.size(); i++) {
             int j = i;
@@ -98,19 +90,15 @@ void Mesh::CalculateTangents() {
             glm::vec3 normal = vertices[j].normal;
 
             float flip = (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x) > 0 ? 1 : -1;
-
             deltaPos1 -= normal * glm::dot(deltaPos1, normal);
             deltaPos2 -= normal * glm::dot(deltaPos2, normal);
-
             float angle = std::acos(dot(deltaPos1, deltaPos2) / (length(deltaPos1) * length(deltaPos2)));
 
             glm::vec3 tangent = normalize((deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * flip);
-
             vertices[j].tangent.w = -flip;
             vertices[j].tangent += glm::vec4((tangent * angle), 0);
         }
     }
-    if (Log) LOG_INFO("END");
 }
 
 void Mesh::LoadData() {

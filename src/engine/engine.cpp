@@ -56,7 +56,6 @@ void Engine::UpdateGlobalUniforms(Shader* shader) {
 
     // update light information
     LightObject *light;
-    // i * 16 is a stride, and n_lights* 16 is the offset
     int base = 144;
     for (unsigned int i = 0; i < scene->dirLights.size() && i < n_lights; i++) {
         light = scene->dirLights[i];
@@ -116,7 +115,6 @@ void Engine::RenderObject(SceneObject* object) {
     prefilterMap->Bind(unit);
     shader->SetInt("_brdfLUT", ++unit);
     brdfLUTTexture->Bind(unit);
-
     for (unsigned int i = 0; i < scene->dirLights.size() && i < n_lights; i++) { 
         shader->SetInt("_shadowMap[" + std::to_string(i) + "]", ++unit);
         shadowMaps[i]->Bind(unit);

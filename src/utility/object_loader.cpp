@@ -28,6 +28,7 @@ SceneObject *ObjectLoader::ReadObjFile(std::string filename) {
     auto& shapes = reader.GetShapes();
     auto& materials = reader.GetMaterials();
 
+    // Create list of materials
     storedMats.clear();
     for (size_t m = 0; m < materials.size(); m++) {
         BasicMaterial* basicMat = new BasicMaterial(materials[m].name);
@@ -45,7 +46,7 @@ SceneObject *ObjectLoader::ReadObjFile(std::string filename) {
         Mesh* mesh = new Mesh();
         VertexData vertex;
 
-        // Loop over faces(polygon)
+        // Loop over faces(polygon) and build mesh
         size_t index_offset = 0;
         for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
             size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
@@ -82,8 +83,8 @@ SceneObject *ObjectLoader::ReadObjFile(std::string filename) {
             }
             index_offset += fv;
         }
-        mesh->LoadBuffers();
-
+        
+        // Set material to default if unspecified or to the firsts face's material
         // int matID = shapes[s].mesh.material_ids[0];
         // Material* material;
         // if (matID == -1)  {
@@ -91,6 +92,9 @@ SceneObject *ObjectLoader::ReadObjFile(std::string filename) {
         // } else {
         //     material = storedMats[matID];
         // }
+        
+        // Finalize and add as child object;
+        mesh->LoadBuffers();
         SceneObject* childObject = new SceneObject(mesh, defaultMat);
         object->AddObject(childObject);
     }
