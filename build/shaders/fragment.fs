@@ -86,6 +86,7 @@ const vec3 sampleOffsetDirections[20] = vec3[] (
    vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 );   
 
+// FIX THIS causing weird shadows on edges of rotating cube
 float CalculatePointShadow(samplerCube shadowCube, vec3 lightPos) {
     vec3 lightVec = input.worldPos - lightPos;
     float currentDepth = length(lightVec);
