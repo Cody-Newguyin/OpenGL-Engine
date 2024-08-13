@@ -7,9 +7,9 @@ Camera::Camera() {
 }
 
 void Camera::Initialize() {
-    width = 800.0f;
-    height = 600.0f;
-    fov = 45.0f;
+    width = 1280.0f;
+    height = 960.0f;
+    fov = 60.0f;
     nearPlane = 0.1f;
     farPlane = 100.0f;
     movementSpeed = 2.0f;

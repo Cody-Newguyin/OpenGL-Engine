@@ -55,8 +55,8 @@ void BasicMaterial::Initalize() {
             smoothnessMap.LoadTexture(smoothnessFile, GL_RED, flipImage);
             SetTexture("_roughnessMap", &smoothnessMap);
         }
-        
     } 
+    
     if (!ambientOcclusionFile.empty()) {
         BasicShader.AddDefine("OCCLUSION_MAP");
         ambientOcclusionMap = Texture();

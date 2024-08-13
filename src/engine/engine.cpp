@@ -219,7 +219,7 @@ void Engine::ShadowCapture() {
     for (int i = 0; i < scene->pointLights.size() && i < n_lights; i++) {
         light = scene->pointLights[i];
 
-        shadowProjection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 25.0f);
+        shadowProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.5f, 25.0f);
         shadowTransforms[0] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0));
         shadowTransforms[1] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0));
         shadowTransforms[2] = shadowProjection * glm::lookAt(light->worldPos, light->worldPos + glm::vec3( 0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0));

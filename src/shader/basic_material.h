@@ -40,7 +40,7 @@ class BasicMaterial : public Material {
     float smoothness = 0.5f;
     float metallic = 0.0f;
     float bumpScale = 1.0f;
-    float ambient = 0.2f;
+    float ambient = 0.1f;
 
     std::string mainFile = "textures/white.png";
     std::string detailFile = "textures/white.png";

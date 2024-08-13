@@ -20,7 +20,9 @@ void Scene::AddLight(LightObject *light) {
 }
 
 void Scene::Update() {
-    this->root->UpdateTransform();
+    for (unsigned int i = 0; i < root->children.size(); i++) {
+        root->children[i]->UpdateTransform();
+    }
     for (unsigned int i = 0; i < dirLights.size(); i++) {
         dirLights[i]->UpdateTransform();
     }

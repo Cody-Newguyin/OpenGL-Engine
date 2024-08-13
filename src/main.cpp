@@ -15,6 +15,7 @@
 #include "mesh/sphere.h"
 #include "mesh/plane.h"
 #include "mesh/quad.h"
+#include "mesh/torus.h"
 #include "scene/scene.h"
 #include "scene/scene_object.h"
 #include "scene/light/light_object.h"
@@ -32,7 +33,7 @@ int main(int, char**){
     std::cout << "MyOpenGLEngine Started!" << std::endl;
     
     MainWindow mainWindow = MainWindow();
-    GLFWwindow* window = mainWindow.Initialize(800, 600, "MyOpenGLEngine");
+    GLFWwindow* window = mainWindow.Initialize(1280, 960, "MyOpenGLEngine");
     if (!window) {
         std::cout << "MyOpenGLEngine Failed!" << std::endl;
         return -1;
@@ -52,6 +53,8 @@ int main(int, char**){
 
     // Load basic materials
     BasicMaterial defaultMat = BasicMaterial("Default");
+    defaultMat.smoothness = 0.75f;
+    defaultMat.metallic = 1.0f;
     defaultMat.Initalize();
 
     BasicMaterial marbleMat = BasicMaterial("Marble");
@@ -75,7 +78,9 @@ int main(int, char**){
     // Load meshes
     Plane plane = Plane(2, 2);
     Cube cube = Cube();
-    Sphere sphere = Sphere(15, 15);
+    Sphere sphere = Sphere(30, 30);
+    Torus torus = Torus(2.0, 0.4, 30, 30);
+
     // Quad quad = Quad();
 
     // Setup object loader
@@ -83,36 +88,50 @@ int main(int, char**){
     objLoader.defaultMat = &defaultMat;
 
     // Load objects into scene
-    // SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/bmw/bmw.obj", true, false, NORM_MAP_NONE);
-    // bunnyObject->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
-    // bunnyObject->SetRotation(glm::vec3(0.0f, 90.0f, 0.0f));
+    // SceneObject* backpack = objLoader.ReadObjFile("meshes/backpack/backpack.obj");
+    // backpack->SetName("Backpack");
+    // scene.AddObject(backpack);
 
     objLoader.normType = NORM_MAP_NORM;
     objLoader.smoothType = SMOOTH_MAP_ROUGH;
-    SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/backpack/backpack.obj", false, false);
-    bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
-    bunnyObject->SetName("Bunny");
-    scene.AddObject(bunnyObject);
+    SceneObject* sponza = objLoader.ReadObjFile("meshes/sponza/sponza.obj", false, true);
+    sponza->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
+    sponza->SetName("Sponza");
+    scene.AddObject(sponza);
+
     // get materials as well
     materials.insert(materials.end(), objLoader.storedMats.begin(), objLoader.storedMats.end());
     
-    SceneObject cubeObject = SceneObject(&cube, &circuitMat, "Cube");
-    cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
-    scene.AddObject(&cubeObject);
-
-    SceneObject sphereObject = SceneObject(&sphere, &defaultMat, "Sphere");
-    sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
-    scene.AddObject(&sphereObject);
-
-    SceneObject planeObject = SceneObject(&plane, &circuitMat, "Plane");
-    planeObject.SetPosition(glm::vec3(0.0f, -4.0f, 0.0f));
-    planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
-    planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
-    scene.AddObject(&planeObject);
-    
     // Empty parent to rotate about
     SceneObject emptyObject = SceneObject("Empty");
+    emptyObject.SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
     scene.AddObject(&emptyObject);
+
+    SceneObject torusObject1 = SceneObject(&torus, &defaultMat, "Torus");
+    torusObject1.SetScale(glm::vec3(0.3f, 0.3f, 0.3f));
+    torusObject1.SetRotation(glm::vec3(0.0f, -40.0f, 0.0f));
+    emptyObject.AddObject(&torusObject1);
+
+    SceneObject torusObject2 = SceneObject(&torus, &defaultMat, "Torus");
+    torusObject2.SetScale(glm::vec3(0.45f, 0.45f, 0.45f));
+    torusObject2.SetRotation(glm::vec3(45.0f, 45.0f, 0.0f));
+    emptyObject.AddObject(&torusObject2);
+
+    // SceneObject cubeObject = SceneObject(&cube, &circuitMat, "Cube");
+    // cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
+    // scene.AddObject(&cubeObject);
+
+    // SceneObject sphereObject = SceneObject(&sphere, &defaultMat, "Sphere");
+    // sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
+    // scene.AddObject(&sphereObject);
+
+    // SceneObject planeObject = SceneObject(&plane, &defaultMat, "Plane");
+    // planeObject.SetPosition(glm::vec3(0.0f, -4.0f, 0.0f));
+    // planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
+    // planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
+    // scene.AddObject(&planeObject);
+    
+   
     
     // Create lights
     LightObject dirLight0 = LightObject(LIGHT_TYPE_DIR, "DirLight 1");
@@ -121,7 +140,7 @@ int main(int, char**){
     scene.AddObject(&dirLight0);
 
     LightObject pointLight0 = LightObject(LIGHT_TYPE_POINT, "PointLight 1");
-    pointLight0.position = glm::vec3(1.0f, 1.0f, 0.0f);
+    pointLight0.scale = glm::vec3(0.75f, 0.75f, 0.75f);
     pointLight0.SetMesh(&sphere);
     pointLight0.SetMaterial(&lightMaterial);
     scene.AddLight(&pointLight0);
@@ -144,10 +163,14 @@ int main(int, char**){
         guiHandler.Update();
 
         // Update scene here
-        cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
-        sphereObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
-        emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
-        scene.root->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+        // cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
+        // sphereObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
+        // emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
+        
+        torusObject1.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
+        torusObject2.SetRotation((float)glfwGetTime() * glm::vec3(25.0f, 50.0f, 0.0f));
+        float displacement = sin((float)glfwGetTime()) * 2;
+        emptyObject.SetPosition(glm::vec3(displacement, 2.0f, -0.2f));
 
         // Render
         engine.Render();

@@ -31,7 +31,7 @@ void ImGuiHandler::Newframe() {
 void ImGuiHandler::Update() {
     Scene *scene = engine->scene;
     ImGuiIO& io = ImGui::GetIO();
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
 
     ImGui::Begin("Engine");
 
