@@ -9,7 +9,7 @@ ObjectLoader::ObjectLoader() {
     defaultMat->Initalize();
 }
 
-SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault) {
+SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool flipImage, bool useDefault, NORM_MAP_TYPE type) {
     tinyobj::ObjReader reader;
     tinyobj::ObjReaderConfig reader_config;
     std::string directory = filename.substr(0, filename.find_last_of("/\\")) + "/";
@@ -33,8 +33,12 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault) {
     if (!useDefault) {
         for (size_t m = 0; m < materials.size(); m++) {
             BasicMaterial* basicMat = new BasicMaterial(materials[m].name);
+            basicMat->SetFlipImage(flipImage);
             if (!materials[m].diffuse_texname.empty()) {
                 basicMat->SetMainFile(directory + materials[m].diffuse_texname);
+            }
+            if (!materials[m].bump_texname.empty()) {
+                basicMat->SetNormalFile(directory + materials[m].bump_texname, type);
             }
             basicMat->Initalize();
             storedMats.push_back(basicMat);
@@ -46,7 +50,10 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault) {
     for (size_t s = 0; s < shapes.size(); s++) {
         Mesh* mesh = new Mesh();
         VertexData vertex;
+        Material* material;
 
+        bool newMatFound = false;
+        int currentMatID = shapes[s].mesh.material_ids[0];
         // Loop over faces(polygon) and build mesh
         size_t index_offset = 0;
         for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
@@ -83,21 +90,25 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault) {
                 mesh->vertices.push_back(vertex);
             }
             index_offset += fv;
+
+            // Create a child object when it has a new material or pass all vertices
+            if (currentMatID != shapes[s].mesh.material_ids[f] || f == (shapes[s].mesh.num_face_vertices.size() - 1)) {
+                // Set material to default if unspecified or face's material
+                if (currentMatID == -1 || useDefault)  {
+                    material = defaultMat;
+                } else {
+                    material = storedMats[currentMatID];
+                }
+                
+                // Finalize and add as child object;
+                mesh->LoadBuffers();
+                SceneObject* childObject = new SceneObject(mesh, material);
+                object->AddObject(childObject);
+                // Set new currentMatID
+                currentMatID = shapes[s].mesh.material_ids[f];
+                mesh = new Mesh();
+            }
         }
-        // Set material to default if unspecified or to the firsts face's material
-        int matID = shapes[s].mesh.material_ids[0];
-        Material* material;
-        if (matID == -1 || useDefault)  {
-            material = defaultMat;
-        } else {
-            material = storedMats[matID];
-        }
-        
-        // Finalize and add as child object;
-        mesh->LoadBuffers();
-        SceneObject* childObject = new SceneObject(mesh, material);
-        object->AddObject(childObject);
     }
-    
     return object;
 }

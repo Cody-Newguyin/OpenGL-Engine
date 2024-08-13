@@ -28,7 +28,7 @@ class Texture {
     Texture();
 
     void DefaultTexture(unsigned int width, unsigned int height, GLenum format, GLenum internalFormat);
-    void LoadTexture(std::string filename, GLenum internalFormat);
+    void LoadTexture(std::string filename, GLenum internalFormat, bool flipImage = false);
     void Bind(int unit);
     void Unbind();
 };

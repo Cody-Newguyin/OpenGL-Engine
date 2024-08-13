@@ -26,21 +26,21 @@ void BasicMaterial::Initalize() {
 
     // Load Textures
     mainTex = Texture();
-    mainTex.LoadTexture(mainFile, GL_RGBA);
+    mainTex.LoadTexture(mainFile, GL_RGBA, flipImage);
     SetTexture("_mainTex", &mainTex);
 
     detailTex = Texture();
-    detailTex.LoadTexture(detailFile, GL_RED);
+    detailTex.LoadTexture(detailFile, GL_RED, flipImage);
     SetTexture("_detailTex", &detailTex);
 
     if (!normalFile.empty()) {
         if (type == NORM_MAP_NORM) {
             normalMap = Texture();
-            normalMap.LoadTexture(normalFile, GL_RGB);
+            normalMap.LoadTexture(normalFile, GL_RGB, flipImage);
             SetTexture("_normalMap", &normalMap);
         } else if (type == NORM_MAP_BUMP) {
             bumpMap = Texture();
-            bumpMap.LoadTexture(normalFile, GL_RED);
+            bumpMap.LoadTexture(normalFile, GL_RED, flipImage);
             SetTexture("_bumpMap", &bumpMap);
         }
     }
@@ -54,8 +54,12 @@ void BasicMaterial::Initalize() {
     SetShader(&BasicShader);
 }
 
+void BasicMaterial::SetFlipImage(bool flipImage) {
+    this->flipImage = flipImage;
+}
 
-void BasicMaterial::SetMainFile(std::string filename) {
+void BasicMaterial::SetMainFile(std::string filename)
+{
     this->mainFile = filename;
 }
 

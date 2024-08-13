@@ -38,7 +38,7 @@ void Texture::DefaultTexture(unsigned int width, unsigned int height, GLenum for
     this->height = height;
 }
 
-void Texture::LoadTexture(std::string filename, GLenum internalFormat) {
+void Texture::LoadTexture(std::string filename, GLenum internalFormat, bool flipImage) {
     // generate id for texture
     glGenTextures(1, &ID);
     // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
@@ -47,7 +47,7 @@ void Texture::LoadTexture(std::string filename, GLenum internalFormat) {
     this->internalFormat = internalFormat;
 
     // Flip images before loading
-    stbi_set_flip_vertically_on_load(false); 
+    stbi_set_flip_vertically_on_load(flipImage); 
 
     // load image and set texture configurations
     int width, height, nrChannels;

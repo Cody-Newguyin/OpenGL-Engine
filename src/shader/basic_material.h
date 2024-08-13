@@ -13,12 +13,16 @@ enum NORM_MAP_TYPE {
 class BasicMaterial : public Material {
     public:
     Shader BasicShader;
+    
 
     Texture mainTex;
     Texture detailTex;
     Texture bumpMap;
     Texture normalMap;
+    
+    // Texture loading configurations
     NORM_MAP_TYPE type = NORM_TYPE_NONE;
+    bool flipImage = false;
 
     glm::vec4 mainTex_ST = glm::vec4(1.0f, 1.0f, 0.0f, 0.0f);
     glm::vec4 detailTex_ST = glm::vec4(1.0f, 1.0f, 0.0f, 0.0f);
@@ -36,6 +40,7 @@ class BasicMaterial : public Material {
     ~BasicMaterial(); 
     void Initalize();
 
+    void SetFlipImage(bool flipImage);
     void SetMainFile(std::string filename);
     void SetDetailFile(std::string filename);
     void SetNormalFile(std::string filename, NORM_MAP_TYPE type);
