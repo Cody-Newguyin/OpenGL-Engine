@@ -41,6 +41,7 @@ uniform sampler2D _bumpMap;
 uniform sampler2D _normalMap;
 uniform sampler2D _metallicMap;
 uniform sampler2D _smoothnessMap;
+uniform sampler2D _roughnessMap;
 uniform sampler2D _occlusionMap;
 uniform sampler2D _emissionMap;
 
@@ -212,7 +213,11 @@ float GetSmoothness() {
     #ifdef SMOOTHNESS_MAP
         return texture(_smoothnessMap, input.uv).r;
     #else
-        return _smoothness;
+        #ifdef ROUGHNESS_MAP
+            return 1.0 - texture(_roughnessMap, input.uv).r;
+        #else
+            return _smoothness;
+        #endif
     #endif
 }
 
@@ -241,7 +246,7 @@ void main() {
 
     vec3 specularTint;
     float oneMinusReflectivity;
-    albedo = DiffuesAndSpecullarFromMetallic(albedo, pow(metallic, 1.0f / GAMMA), specularTint, oneMinusReflectivity);
+    albedo = DiffuesAndSpecullarFromMetallic(albedo, metallic, specularTint, oneMinusReflectivity);
 
     vec3 viewDir = normalize(_camPos - input.worldPos);
 

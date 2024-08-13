@@ -63,7 +63,7 @@ int main(int, char**){
     circuitMat.SetMainFile("textures/circuitry/circuitry-albedo.png");
     circuitMat.SetNormalFile("textures/circuitry/circuitry-normals-dented.png", NORM_MAP_NORM);
     circuitMat.SetMetallicFile("textures/circuitry/circuitry-metallic.png");
-    circuitMat.SetSmoothnessFile("textures/circuitry/circuitry-smoothness.png");
+    circuitMat.SetSmoothnessFile("textures/circuitry/circuitry-smoothness.png", SMOOTH_MAP_SMOOTH);
     circuitMat.SetAmbientOcclustionFile("textures/circuitry/circuitry-occlusion.png");
     circuitMat.SetEmissionFile("textures/circuitry/circuitry-emission.png");
     circuitMat.Initalize();
@@ -83,10 +83,14 @@ int main(int, char**){
     objLoader.defaultMat = &defaultMat;
 
     // Load objects into scene
-    SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/bmw/bmw.obj", true, false, NORM_MAP_NONE);
+    // SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/bmw/bmw.obj", true, false, NORM_MAP_NONE);
+    // bunnyObject->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
+    // bunnyObject->SetRotation(glm::vec3(0.0f, 90.0f, 0.0f));
+
+    objLoader.normType = NORM_MAP_NORM;
+    objLoader.smoothType = SMOOTH_MAP_ROUGH;
+    SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/backpack/backpack.obj", false, false);
     bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
-    bunnyObject->SetRotation(glm::vec3(0.0f, 90.0f, 0.0f));
-    bunnyObject->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
     bunnyObject->SetName("Bunny");
     scene.AddObject(bunnyObject);
     // get materials as well
@@ -101,7 +105,7 @@ int main(int, char**){
     scene.AddObject(&sphereObject);
 
     SceneObject planeObject = SceneObject(&plane, &circuitMat, "Plane");
-    planeObject.SetPosition(glm::vec3(0.0f, -3.0f, 0.0f));
+    planeObject.SetPosition(glm::vec3(0.0f, -4.0f, 0.0f));
     planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
     scene.AddObject(&planeObject);

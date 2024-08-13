@@ -16,7 +16,7 @@ void BasicMaterial::Initalize() {
 
     // Load texures and set defines based on type of map being sampled
     mainTex = Texture();
-    mainTex.LoadTexture(mainFile, GL_RGBA, flipImage);
+    mainTex.LoadTexture(mainFile, GL_SRGB, flipImage);
     SetTexture("_mainTex", &mainTex);
 
     detailTex = Texture();
@@ -24,16 +24,16 @@ void BasicMaterial::Initalize() {
     SetTexture("_detailTex", &detailTex);
 
     if (!normalFile.empty()) {
-        if (type == NORM_MAP_NORM) {
+        if (normType == NORM_MAP_NORM) {
             BasicShader.AddDefine("NORMAL_MAP");
             normalMap = Texture();
             normalMap.LoadTexture(normalFile, GL_RGB, flipImage);
             SetTexture("_normalMap", &normalMap);
-        } else if (type == NORM_MAP_BUMP) {
+        } else if (normType == NORM_MAP_BUMP) {
             BasicShader.AddDefine("BUMP_MAP");
-            bumpMap = Texture();
-            bumpMap.LoadTexture(normalFile, GL_RED, flipImage);
-            SetTexture("_bumpMap", &bumpMap);
+            normalMap = Texture();
+            normalMap.LoadTexture(normalFile, GL_RED, flipImage);
+            SetTexture("_bumpMap", &normalMap);
         }
         SetFloat("_bumpScale", &bumpScale);
     }
@@ -44,10 +44,18 @@ void BasicMaterial::Initalize() {
         SetTexture("_metallicMap", &metallicMap);
     } 
     if (!smoothnessFile.empty()) {
-        BasicShader.AddDefine("SMOOTHNESS_MAP");
-        smoothnessMap = Texture();
-        smoothnessMap.LoadTexture(smoothnessFile, GL_RED, flipImage);
-        SetTexture("_smoothnessMap", &smoothnessMap);
+        if (smoothType == SMOOTH_MAP_SMOOTH) {
+            BasicShader.AddDefine("SMOOTHNESS_MAP");
+            smoothnessMap = Texture();
+            smoothnessMap.LoadTexture(smoothnessFile, GL_RED, flipImage);
+            SetTexture("_smoothnessMap", &smoothnessMap);
+        } else if (smoothType == SMOOTH_MAP_ROUGH) {
+            BasicShader.AddDefine("ROUGHNESS_MAP");
+            smoothnessMap = Texture();
+            smoothnessMap.LoadTexture(smoothnessFile, GL_RED, flipImage);
+            SetTexture("_roughnessMap", &smoothnessMap);
+        }
+        
     } 
     if (!ambientOcclusionFile.empty()) {
         BasicShader.AddDefine("OCCLUSION_MAP");
@@ -89,15 +97,16 @@ void BasicMaterial::SetDetailFile(std::string filename) {
 
 void BasicMaterial::SetNormalFile(std::string filename, NORM_MAP_TYPE type) {
     this->normalFile = filename;
-    this->type = type;
+    this->normType = type;
 }
 
 void BasicMaterial::SetMetallicFile(std::string filename) {
     this->metallicFile = filename;
 }
 
-void BasicMaterial::SetSmoothnessFile(std::string filename) {
+void BasicMaterial::SetSmoothnessFile(std::string filename, SMOOTH_MAP_TYPE type) {
     this->smoothnessFile = filename;
+    this->smoothType = type;
 }
 
 void BasicMaterial::SetAmbientOcclustionFile(std::string filename) {

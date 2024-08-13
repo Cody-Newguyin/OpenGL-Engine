@@ -10,6 +10,12 @@ enum NORM_MAP_TYPE {
     NORM_MAP_BUMP,
 };
 
+enum SMOOTH_MAP_TYPE {
+    SMOOTH_MAP_NONE,
+    SMOOTH_MAP_SMOOTH,
+    SMOOTH_MAP_ROUGH
+};
+
 class BasicMaterial : public Material {
     public:
     Shader BasicShader;
@@ -17,7 +23,6 @@ class BasicMaterial : public Material {
 
     Texture mainTex;
     Texture detailTex;
-    Texture bumpMap;
     Texture normalMap;
     Texture metallicMap;
     Texture smoothnessMap;
@@ -25,7 +30,8 @@ class BasicMaterial : public Material {
     Texture emissionMap;
 
     // Texture loading configurations
-    NORM_MAP_TYPE type = NORM_MAP_NONE;
+    NORM_MAP_TYPE normType = NORM_MAP_NONE;
+    SMOOTH_MAP_TYPE smoothType = SMOOTH_MAP_NONE;
     bool flipImage = false;
 
     glm::vec4 mainTex_ST = glm::vec4(1.0f, 1.0f, 0.0f, 0.0f);
@@ -54,7 +60,7 @@ class BasicMaterial : public Material {
     void SetDetailFile(std::string filename);
     void SetNormalFile(std::string filename, NORM_MAP_TYPE type);
     void SetMetallicFile(std::string filename);
-    void SetSmoothnessFile(std::string filename);
+    void SetSmoothnessFile(std::string filename, SMOOTH_MAP_TYPE type);
     void SetAmbientOcclustionFile(std::string filename);
     void SetEmissionFile(std::string filename);
 };

@@ -9,7 +9,7 @@ ObjectLoader::ObjectLoader() {
     defaultMat->Initalize();
 }
 
-SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault, bool flipImage, NORM_MAP_TYPE type) {
+SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault, bool flipImage) {
     tinyobj::ObjReader reader;
     tinyobj::ObjReaderConfig reader_config;
     std::string directory = filename.substr(0, filename.find_last_of("/\\")) + "/";
@@ -38,7 +38,16 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault, bo
                 basicMat->SetMainFile(directory + materials[m].diffuse_texname);
             }
             if (!materials[m].bump_texname.empty()) {
-                basicMat->SetNormalFile(directory + materials[m].bump_texname, type);
+                basicMat->SetNormalFile(directory + materials[m].bump_texname, normType);
+            }
+            if (!materials[m].specular_texname.empty()) {
+                basicMat->SetMetallicFile(directory + materials[m].specular_texname);
+            }
+            if (!materials[m].specular_highlight_texname.empty()) {
+                basicMat->SetSmoothnessFile(directory + materials[m].specular_highlight_texname, smoothType);
+            }
+            if (!materials[m].ambient_texname.empty()) {
+                basicMat->SetAmbientOcclustionFile(directory + materials[m].ambient_texname);
             }
             basicMat->Initalize();
             storedMats.push_back(basicMat);
