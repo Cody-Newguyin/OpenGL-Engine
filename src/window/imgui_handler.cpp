@@ -64,11 +64,10 @@ void ImGuiHandler::Update() {
 void ImGuiHandler::ShowMaterialTreeNode(BasicMaterial *material, unsigned int id) {
     if (ImGui::TreeNode((void*)(intptr_t)id, material->name.c_str(), id)) {
         ImGui::ColorEdit3("", (float*) &material->color);
-        ImGui::SliderFloat("Smoothness", &material->smoothness, 0.0f, 1.0f, "ratio = %.3f");
-        ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f, "ratio = %.3f");
-        if (material->type != NORM_MAP_NONE) {
-            ImGui::DragFloat("Bump Scale", &material->bumpScale, 0.005f, 0.75f, 5.0f);
-        }
+        if (material->smoothnessFile.empty()) ImGui::SliderFloat("Smoothness", &material->smoothness, 0.0f, 1.0f, "ratio = %.3f");
+        if (material->metallicFile.empty()) ImGui::SliderFloat("Metallic", &material->metallic, 0.0f, 1.0f, "ratio = %.3f");
+        if (material->ambientOcclusionFile.empty()) ImGui::SliderFloat("Ambient", &material->ambient, 0.0f, 1.0f, "ratio = %.3f");
+        if (!material->normalFile.empty()) ImGui::DragFloat("Bump Scale", &material->bumpScale, 0.005f, 0.75f, 5.0f);
         ImGui::TreePop();
     }
 }

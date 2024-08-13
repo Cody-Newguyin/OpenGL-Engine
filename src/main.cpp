@@ -60,10 +60,12 @@ int main(int, char**){
     marbleMat.Initalize();
 
     BasicMaterial circuitMat = BasicMaterial("Circuit");
-    circuitMat.SetMainFile("textures/circuitry-albedo.png");
-    circuitMat.SetNormalFile("textures/circuitry-normals.png", NORM_MAP_NORM);
-    circuitMat.SetMetallicFile("textures/circuitry-metallic.png");
-    circuitMat.SetSmoothnessFile("textures/circuitry-smoothness.png");
+    circuitMat.SetMainFile("textures/circuitry/circuitry-albedo.png");
+    circuitMat.SetNormalFile("textures/circuitry/circuitry-normals-dented.png", NORM_MAP_NORM);
+    circuitMat.SetMetallicFile("textures/circuitry/circuitry-metallic.png");
+    circuitMat.SetSmoothnessFile("textures/circuitry/circuitry-smoothness.png");
+    circuitMat.SetAmbientOcclustionFile("textures/circuitry/circuitry-occlusion.png");
+    circuitMat.SetEmissionFile("textures/circuitry/circuitry-emission.png");
     circuitMat.Initalize();
 
     materials.push_back(&defaultMat);
@@ -78,7 +80,7 @@ int main(int, char**){
 
     // Setup object loader
     ObjectLoader objLoader = ObjectLoader();
-    objLoader.defaultMat = &circuitMat;
+    objLoader.defaultMat = &defaultMat;
 
     // Load objects into scene
     SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/bmw/bmw.obj", true, false, NORM_MAP_NONE);
@@ -94,7 +96,7 @@ int main(int, char**){
     cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
     scene.AddObject(&cubeObject);
 
-    SceneObject sphereObject = SceneObject(&sphere, &circuitMat, "Sphere");
+    SceneObject sphereObject = SceneObject(&sphere, &defaultMat, "Sphere");
     sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
     scene.AddObject(&sphereObject);
 

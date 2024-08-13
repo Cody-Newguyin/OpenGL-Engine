@@ -49,6 +49,18 @@ void BasicMaterial::Initalize() {
         smoothnessMap.LoadTexture(smoothnessFile, GL_RED, flipImage);
         SetTexture("_smoothnessMap", &smoothnessMap);
     } 
+    if (!ambientOcclusionFile.empty()) {
+        BasicShader.AddDefine("OCCLUSION_MAP");
+        ambientOcclusionMap = Texture();
+        ambientOcclusionMap.LoadTexture(ambientOcclusionFile, GL_RED, flipImage);
+        SetTexture("_occlusionMap", &ambientOcclusionMap);
+    }
+    if (!emissionFile.empty()) {
+        BasicShader.AddDefine("EMISSION_MAP");
+        emissionMap = Texture();
+        emissionMap.LoadTexture(emissionFile, GL_RGB, flipImage);
+        SetTexture("_emissionMap", &emissionMap);
+    }
 
     // Finalize
     SetVector("_color", &color);
@@ -56,6 +68,7 @@ void BasicMaterial::Initalize() {
     SetVector("_detailTex_ST", &detailTex_ST);
     SetFloat("_smoothness", &smoothness);
     SetFloat("_metallic", &metallic);
+    SetFloat("_ambient", &ambient);
     
     BasicShader.Initialize("shaders/vertex.vs", "shaders/fragment.fs");
     SetShader(&BasicShader);
@@ -85,4 +98,12 @@ void BasicMaterial::SetMetallicFile(std::string filename) {
 
 void BasicMaterial::SetSmoothnessFile(std::string filename) {
     this->smoothnessFile = filename;
+}
+
+void BasicMaterial::SetAmbientOcclustionFile(std::string filename) {
+    this->ambientOcclusionFile = filename;
+}
+
+void BasicMaterial::SetEmissionFile(std::string filename) {
+    this->emissionFile = filename;
 }

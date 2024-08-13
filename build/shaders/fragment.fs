@@ -34,12 +34,15 @@ uniform vec3 _color = vec3(1.0f);
 uniform float _smoothness = 0.5f;
 uniform float _metallic = 0.0f;
 uniform float _bumpScale = 1.0f;
+uniform float _ambient = 0.2f;
 uniform sampler2D _mainTex;
 uniform sampler2D _detailTex;
 uniform sampler2D _bumpMap;
 uniform sampler2D _normalMap;
 uniform sampler2D _metallicMap;
 uniform sampler2D _smoothnessMap;
+uniform sampler2D _occlusionMap;
+uniform sampler2D _emissionMap;
 
 struct Light {
     vec3 color;
@@ -148,7 +151,7 @@ vec3 PBR_Ambient(vec3 albedo, vec3 specularTint, float smoothness, float metalli
     vec2 brdf = texture(_brdfLUT, vec2(DotClamped(normal, viewDir), roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    vec3 ambient = (kD * diffuse + specular) * 0.1;
+    vec3 ambient = (kD * diffuse + specular);
     return ambient;
 }
 
@@ -213,6 +216,22 @@ float GetSmoothness() {
     #endif
 }
 
+float GetOcclusion() {
+    #ifdef OCCLUSION_MAP
+        return texture(_occlusionMap, input.uv).r;
+    #else
+        return _ambient;
+    #endif
+}
+
+vec3 GetEmission() {
+    #ifdef EMISSION_MAP
+        return texture(_emissionMap, input.uv).rgb;
+    #else
+        return vec3(0.0, 0.0, 0.0);
+    #endif
+}
+
 void main() {
     InitializeInput();
 
@@ -239,7 +258,8 @@ void main() {
         light = CreatePointLight(_pointlight_pos[0], _pointlight_color[0]);
         color += BRDF_PBR(albedo, specularTint, smoothness, metallic, input.normal, viewDir, light) * (1.0 - CalculatePointShadow(_shadowCubeMap[0], light.pos));
     }
-    color += PBR_Ambient(albedo, specularTint, smoothness, metallic, input.normal, viewDir);
+    color += PBR_Ambient(albedo, specularTint, smoothness, metallic, input.normal, viewDir) * GetOcclusion();
+    color += GetEmission();
 
     color = pow(color, vec3(1.0 / GAMMA));  
     FragColor = vec4(color, 1.0);

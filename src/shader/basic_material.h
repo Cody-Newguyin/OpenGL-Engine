@@ -21,7 +21,9 @@ class BasicMaterial : public Material {
     Texture normalMap;
     Texture metallicMap;
     Texture smoothnessMap;
-    
+    Texture ambientOcclusionMap;
+    Texture emissionMap;
+
     // Texture loading configurations
     NORM_MAP_TYPE type = NORM_MAP_NONE;
     bool flipImage = false;
@@ -32,12 +34,15 @@ class BasicMaterial : public Material {
     float smoothness = 0.5f;
     float metallic = 0.0f;
     float bumpScale = 1.0f;
+    float ambient = 0.2f;
 
     std::string mainFile = "textures/white.png";
     std::string detailFile = "textures/white.png";
     std::string normalFile = "";
     std::string metallicFile = "";
     std::string smoothnessFile = "";
+    std::string ambientOcclusionFile = "";
+    std::string emissionFile = "";
     
     public:
     BasicMaterial(std::string name = "text");
@@ -50,6 +55,8 @@ class BasicMaterial : public Material {
     void SetNormalFile(std::string filename, NORM_MAP_TYPE type);
     void SetMetallicFile(std::string filename);
     void SetSmoothnessFile(std::string filename);
+    void SetAmbientOcclustionFile(std::string filename);
+    void SetEmissionFile(std::string filename);
 };
 
 #endif
