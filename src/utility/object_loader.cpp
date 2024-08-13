@@ -9,7 +9,7 @@ ObjectLoader::ObjectLoader() {
     defaultMat->Initalize();
 }
 
-SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool flipImage, bool useDefault, NORM_MAP_TYPE type) {
+SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault, bool flipImage, NORM_MAP_TYPE type) {
     tinyobj::ObjReader reader;
     tinyobj::ObjReaderConfig reader_config;
     std::string directory = filename.substr(0, filename.find_last_of("/\\")) + "/";
@@ -52,7 +52,6 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool flipImage, boo
         VertexData vertex;
         Material* material;
 
-        bool newMatFound = false;
         int currentMatID = shapes[s].mesh.material_ids[0];
         // Loop over faces(polygon) and build mesh
         size_t index_offset = 0;
@@ -91,7 +90,7 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool flipImage, boo
             }
             index_offset += fv;
 
-            // Create a child object when it has a new material or pass all vertices
+            // Create a child object when it has a new material or passes all vertices
             if (currentMatID != shapes[s].mesh.material_ids[f] || f == (shapes[s].mesh.num_face_vertices.size() - 1)) {
                 // Set material to default if unspecified or face's material
                 if (currentMatID == -1 || useDefault)  {

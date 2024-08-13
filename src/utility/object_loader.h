@@ -17,7 +17,7 @@ class ObjectLoader {
 
     public:
     ObjectLoader();
-    SceneObject* ReadObjFile(std::string filename, bool flipImage, bool useDefault = true, NORM_MAP_TYPE type = NORM_TYPE_NONE);
+    SceneObject* ReadObjFile(std::string filename, bool useDefault = true, bool flipImage = false, NORM_MAP_TYPE type = NORM_MAP_NONE);
 };
 
 #endif

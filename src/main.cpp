@@ -60,8 +60,10 @@ int main(int, char**){
     marbleMat.Initalize();
 
     BasicMaterial circuitMat = BasicMaterial("Circuit");
-    // circuitMat.SetMainFile("textures/circuitry-albedo.png");
+    circuitMat.SetMainFile("textures/circuitry-albedo.png");
     circuitMat.SetNormalFile("textures/circuitry-normals.png", NORM_MAP_NORM);
+    circuitMat.SetMetallicFile("textures/circuitry-metallic.png");
+    circuitMat.SetSmoothnessFile("textures/circuitry-smoothness.png");
     circuitMat.Initalize();
 
     materials.push_back(&defaultMat);
@@ -79,7 +81,7 @@ int main(int, char**){
     objLoader.defaultMat = &circuitMat;
 
     // Load objects into scene
-    SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/sponza/sponza.obj", true, false, NORM_MAP_NORM);
+    SceneObject* bunnyObject = objLoader.ReadObjFile("meshes/bmw/bmw.obj", true, false, NORM_MAP_NONE);
     bunnyObject->SetPosition(glm::vec3(0.0f, -2.0f, 0.0f));
     bunnyObject->SetRotation(glm::vec3(0.0f, 90.0f, 0.0f));
     bunnyObject->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));

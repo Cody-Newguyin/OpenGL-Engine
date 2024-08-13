@@ -5,7 +5,7 @@
 #include "shader/material.h"
 
 enum NORM_MAP_TYPE {
-    NORM_TYPE_NONE,
+    NORM_MAP_NONE,
     NORM_MAP_NORM,
     NORM_MAP_BUMP,
 };
@@ -19,9 +19,11 @@ class BasicMaterial : public Material {
     Texture detailTex;
     Texture bumpMap;
     Texture normalMap;
+    Texture metallicMap;
+    Texture smoothnessMap;
     
     // Texture loading configurations
-    NORM_MAP_TYPE type = NORM_TYPE_NONE;
+    NORM_MAP_TYPE type = NORM_MAP_NONE;
     bool flipImage = false;
 
     glm::vec4 mainTex_ST = glm::vec4(1.0f, 1.0f, 0.0f, 0.0f);
@@ -34,6 +36,8 @@ class BasicMaterial : public Material {
     std::string mainFile = "textures/white.png";
     std::string detailFile = "textures/white.png";
     std::string normalFile = "";
+    std::string metallicFile = "";
+    std::string smoothnessFile = "";
     
     public:
     BasicMaterial(std::string name = "text");
@@ -44,6 +48,8 @@ class BasicMaterial : public Material {
     void SetMainFile(std::string filename);
     void SetDetailFile(std::string filename);
     void SetNormalFile(std::string filename, NORM_MAP_TYPE type);
+    void SetMetallicFile(std::string filename);
+    void SetSmoothnessFile(std::string filename);
 };
 
 #endif
