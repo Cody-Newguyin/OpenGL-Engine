@@ -258,7 +258,7 @@ void Engine::PBRcapture() {
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);  
 
     irrMap = new TextureCube();
-    irrMap->DefaultTextureCube(32, 32, GL_RGB, GL_RGB);
+    irrMap->DefaultTextureCube(64, 64, GL_RGB, GL_RGB);
 
     Shader* irrShader = new Shader();
     irrShader->Initialize("shaders/cubemap.vs", "shaders/irradiance_capture.fs");
@@ -274,7 +274,7 @@ void Engine::PBRcapture() {
     prefilterMap = new TextureCube();
     prefilterMap->filterMin = GL_LINEAR_MIPMAP_LINEAR;
     prefilterMap->mipmapEnabled = true;
-    prefilterMap->DefaultTextureCube(128, 128, GL_RGB, GL_RGB);
+    prefilterMap->DefaultTextureCube(256, 256, GL_RGB, GL_RGB);
 
     Shader* prefilterShader = new Shader();
     prefilterShader->Initialize("shaders/cubemap.vs", "shaders/prefilter_capture.fs");

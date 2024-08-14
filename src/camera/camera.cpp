@@ -12,7 +12,7 @@ void Camera::Initialize() {
     fov = 60.0f;
     nearPlane = 0.1f;
     farPlane = 100.0f;
-    movementSpeed = 2.0f;
+    movementSpeed = 4.0f;
     MouseSensitivity = 0.1f;
     position = glm::vec3(0.0f, 0.0f, 7.0f);
     rotation = glm::vec3(0.0f, -90.0f, 0.0f);

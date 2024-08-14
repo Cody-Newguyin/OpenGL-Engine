@@ -9,7 +9,7 @@ ObjectLoader::ObjectLoader() {
     defaultMat->Initalize();
 }
 
-SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault, bool flipImage) {
+SceneObject* ObjectLoader::ReadObjFile(std::string filename, std::string objName, bool useDefault, bool flipImage) {
     tinyobj::ObjReader reader;
     tinyobj::ObjReaderConfig reader_config;
     std::string directory = filename.substr(0, filename.find_last_of("/\\")) + "/";
@@ -56,6 +56,7 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault, bo
     
     LOG_INFO("Number of child objects: " + std::to_string(shapes.size()));
     SceneObject* object = new SceneObject();
+    object->SetName(objName);
     for (size_t s = 0; s < shapes.size(); s++) {
         Mesh* mesh = new Mesh();
         VertexData vertex;
@@ -111,6 +112,7 @@ SceneObject* ObjectLoader::ReadObjFile(std::string filename, bool useDefault, bo
                 // Finalize and add as child object;
                 mesh->LoadBuffers();
                 SceneObject* childObject = new SceneObject(mesh, material);
+                childObject->SetName(objName + "_" + std::to_string(s));
                 object->AddObject(childObject);
                 // Set new currentMatID
                 currentMatID = shapes[s].mesh.material_ids[f];

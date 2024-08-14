@@ -5,11 +5,14 @@ An OpenGL graphics renderer largely based on Joey de Vries' [Learn OpenGL tutori
 ## Samples
 ![Demo](demo.gif)
 
+![Sample Gun](sample1.png)
+
 ## Features
 Renderer
 - Material/shader pipeline
     - Custom shader pre-processor to handle defines and includes
     - Normal mapping
+    - Metal, Smoothness, Occlusion, and Emission mapping
 - Physically based rendering
     - Diffuse integral, prefiltered environments, and BRDFlut
     - Multiple directional/point light

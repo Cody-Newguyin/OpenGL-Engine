@@ -53,14 +53,10 @@ int main(int, char**){
 
     // Load basic materials
     BasicMaterial defaultMat = BasicMaterial("Default");
-    defaultMat.smoothness = 0.75f;
-    defaultMat.metallic = 1.0f;
+    defaultMat.smoothness = 0.5f;
+    defaultMat.metallic = 0.0f;
     defaultMat.Initalize();
-
-    BasicMaterial marbleMat = BasicMaterial("Marble");
-    marbleMat.SetMainFile("textures/marble.png");
-    marbleMat.SetNormalFile("textures/heights.png", NORM_MAP_BUMP);
-    marbleMat.Initalize();
+    materials.push_back(&defaultMat);
 
     BasicMaterial circuitMat = BasicMaterial("Circuit");
     circuitMat.SetMainFile("textures/circuitry/circuitry-albedo.png");
@@ -70,9 +66,6 @@ int main(int, char**){
     circuitMat.SetAmbientOcclustionFile("textures/circuitry/circuitry-occlusion.png");
     circuitMat.SetEmissionFile("textures/circuitry/circuitry-emission.png");
     circuitMat.Initalize();
-
-    materials.push_back(&defaultMat);
-    materials.push_back(&marbleMat);
     materials.push_back(&circuitMat);
 
     // Load meshes
@@ -88,34 +81,30 @@ int main(int, char**){
     objLoader.defaultMat = &defaultMat;
 
     // Load objects into scene
-    // SceneObject* backpack = objLoader.ReadObjFile("meshes/backpack/backpack.obj");
-    // backpack->SetName("Backpack");
+
+    // objLoader.normType = NORM_MAP_NORM;
+    // objLoader.smoothType = SMOOTH_MAP_ROUGH;
+    // SceneObject* backpack = objLoader.ReadObjFile("meshes/backpack/backpack.obj", "Backpack", false);
     // scene.AddObject(backpack);
 
-    objLoader.normType = NORM_MAP_NORM;
-    objLoader.smoothType = SMOOTH_MAP_ROUGH;
-    SceneObject* sponza = objLoader.ReadObjFile("meshes/sponza/sponza.obj", false, true);
-    sponza->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
-    sponza->SetName("Sponza");
-    scene.AddObject(sponza);
+    BasicMaterial cerberusMat = BasicMaterial("Cerberus");
+    cerberusMat.SetFlipImage(true);
+    cerberusMat.SetMainFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
+    cerberusMat.SetNormalFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga", NORM_MAP_NORM);
+    cerberusMat.SetMetallicFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
+    cerberusMat.SetSmoothnessFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Raw/Cerberus_R.tga", SMOOTH_MAP_ROUGH);
+    // cerberusMat.SetAmbientOcclustionFile("meshes/Cerberus_by_Andrew_Maximov/Raw/Cerberus_R.tga");
+    cerberusMat.Initalize();
+    materials.push_back(&cerberusMat);
 
-    // get materials as well
-    materials.insert(materials.end(), objLoader.storedMats.begin(), objLoader.storedMats.end());
-    
-    // Empty parent to rotate about
+    objLoader.defaultMat = &cerberusMat;
+    SceneObject* cerberus = objLoader.ReadObjFile("meshes/Cerberus_by_Andrew_Maximov/Cerberus_LP.obj", "Cerberus", true);\
+    cerberus->SetScale(glm::vec3(0.05f, 0.05f, 0.05f));
+    scene.AddObject(cerberus);
+
     SceneObject emptyObject = SceneObject("Empty");
     emptyObject.SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
     scene.AddObject(&emptyObject);
-
-    SceneObject torusObject1 = SceneObject(&torus, &defaultMat, "Torus");
-    torusObject1.SetScale(glm::vec3(0.3f, 0.3f, 0.3f));
-    torusObject1.SetRotation(glm::vec3(0.0f, -40.0f, 0.0f));
-    emptyObject.AddObject(&torusObject1);
-
-    SceneObject torusObject2 = SceneObject(&torus, &defaultMat, "Torus");
-    torusObject2.SetScale(glm::vec3(0.45f, 0.45f, 0.45f));
-    torusObject2.SetRotation(glm::vec3(45.0f, 45.0f, 0.0f));
-    emptyObject.AddObject(&torusObject2);
 
     // SceneObject cubeObject = SceneObject(&cube, &circuitMat, "Cube");
     // cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
@@ -130,7 +119,6 @@ int main(int, char**){
     // planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
     // planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
     // scene.AddObject(&planeObject);
-    
    
     
     // Create lights
@@ -140,7 +128,8 @@ int main(int, char**){
     scene.AddObject(&dirLight0);
 
     LightObject pointLight0 = LightObject(LIGHT_TYPE_POINT, "PointLight 1");
-    pointLight0.scale = glm::vec3(0.75f, 0.75f, 0.75f);
+    pointLight0.SetPosition(glm::vec3(3.0f, 0.0f, 0.0f));
+    pointLight0.SetScale(glm::vec3(0.5f, 0.5f, 0.5f));
     pointLight0.SetMesh(&sphere);
     pointLight0.SetMaterial(&lightMaterial);
     scene.AddLight(&pointLight0);
@@ -165,12 +154,7 @@ int main(int, char**){
         // Update scene here
         // cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
         // sphereObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
-        // emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
-        
-        torusObject1.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
-        torusObject2.SetRotation((float)glfwGetTime() * glm::vec3(25.0f, 50.0f, 0.0f));
-        float displacement = sin((float)glfwGetTime()) * 2;
-        emptyObject.SetPosition(glm::vec3(displacement, 2.0f, -0.2f));
+        emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
 
         // Render
         engine.Render();
@@ -188,3 +172,36 @@ int main(int, char**){
     std::cout << "MyOpenGLEngine Ended!" << std::endl;
     return 0;
 }
+
+
+    // Sponze scene
+
+    // objLoader.normType = NORM_MAP_NORM;
+    // objLoader.smoothType = SMOOTH_MAP_ROUGH;
+    // SceneObject* sponza = objLoader.ReadObjFile("meshes/sponza/sponza.obj", "sponza",false, true);
+    // 
+    // sponza->SetName("Sponza");
+    // scene.AddObject(sponza);
+
+    // get materials as well
+    // materials.insert(materials.end(), objLoader.storedMats.begin(), objLoader.storedMats.end());
+    
+    // Empty parent to rotate about
+    // SceneObject emptyObject = SceneObject("Empty");
+    // emptyObject.SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
+    // scene.AddObject(&emptyObject);
+
+    // SceneObject torusObject1 = SceneObject(&torus, &defaultMat, "Torus");
+    // torusObject1.SetScale(glm::vec3(0.3f, 0.3f, 0.3f));
+    // torusObject1.SetRotation(glm::vec3(0.0f, -40.0f, 0.0f));
+    // emptyObject.AddObject(&torusObject1);
+
+    // SceneObject torusObject2 = SceneObject(&torus, &defaultMat, "Torus");
+    // torusObject2.SetScale(glm::vec3(0.45f, 0.45f, 0.45f));
+    // torusObject2.SetRotation(glm::vec3(45.0f, 45.0f, 0.0f));
+    // emptyObject.AddObject(&torusObject2);
+        
+    // torusObject1.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
+    // torusObject2.SetRotation((float)glfwGetTime() * glm::vec3(25.0f, 50.0f, 0.0f));
+    // float displacement = sin((float)glfwGetTime()) * 2;
+    // emptyObject.SetPosition(glm::vec3(displacement, 2.0f, -0.2f));

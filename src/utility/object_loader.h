@@ -19,7 +19,7 @@ class ObjectLoader {
 
     public:
     ObjectLoader();
-    SceneObject* ReadObjFile(std::string filename, bool useDefault = true, bool flipImage = false);
+    SceneObject* ReadObjFile(std::string filename, std::string objName, bool useDefault = true, bool flipImage = false);
 };
 
 #endif
