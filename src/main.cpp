@@ -106,19 +106,19 @@ int main(int, char**){
     emptyObject.SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
     scene.AddObject(&emptyObject);
 
-    // SceneObject cubeObject = SceneObject(&cube, &circuitMat, "Cube");
-    // cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
-    // scene.AddObject(&cubeObject);
+    SceneObject cubeObject = SceneObject(&cube, &circuitMat, "Cube");
+    cubeObject.SetPosition(glm::vec3(2.0f, -2.0f, 0.0f));
+    scene.AddObject(&cubeObject);
 
-    // SceneObject sphereObject = SceneObject(&sphere, &defaultMat, "Sphere");
-    // sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
-    // scene.AddObject(&sphereObject);
+    SceneObject sphereObject = SceneObject(&sphere, &defaultMat, "Sphere");
+    sphereObject.SetPosition(glm::vec3(-2.0f, -2.0f, 0.0f));
+    scene.AddObject(&sphereObject);
 
-    // SceneObject planeObject = SceneObject(&plane, &defaultMat, "Plane");
-    // planeObject.SetPosition(glm::vec3(0.0f, -4.0f, 0.0f));
-    // planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
-    // planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
-    // scene.AddObject(&planeObject);
+    SceneObject planeObject = SceneObject(&plane, &defaultMat, "Plane");
+    planeObject.SetPosition(glm::vec3(0.0f, -4.0f, 0.0f));
+    planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
+    planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
+    scene.AddObject(&planeObject);
    
     
     // Create lights
@@ -152,8 +152,8 @@ int main(int, char**){
         guiHandler.Update();
 
         // Update scene here
-        // cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
-        // sphereObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
+        cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
+        sphereObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
         emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
 
         // Render

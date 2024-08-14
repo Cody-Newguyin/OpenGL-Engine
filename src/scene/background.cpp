@@ -15,12 +15,12 @@ Background::Background() {
     shader->Initialize("shaders/background.vs", "shaders/background.fs");
 
     std::vector<std::string> faces {
-        "textures/roombox/right.png",
-        "textures/roombox/left.png",
-        "textures/roombox/top.png",
-        "textures/roombox/bottom.png",
-        "textures/roombox/front.png",
-        "textures/roombox/back.png",
+        "textures/skybox/right.jpg",
+        "textures/skybox/left.jpg",
+        "textures/skybox/top.jpg",
+        "textures/skybox/bottom.jpg",
+        "textures/skybox/front.jpg",
+        "textures/skybox/back.jpg",
     };
     envMap->LoadTextureCube(faces, GL_RGBA);
 

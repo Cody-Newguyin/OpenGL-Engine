@@ -266,6 +266,8 @@ void main() {
     color += PBR_Ambient(albedo, specularTint, smoothness, metallic, input.normal, viewDir) * GetOcclusion();
     color += GetEmission();
 
+    // HDR tonemapping
+    color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / GAMMA));  
     FragColor = vec4(color, 1.0);
 }
