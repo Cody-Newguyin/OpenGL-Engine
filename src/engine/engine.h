@@ -28,6 +28,7 @@ class Engine {
 
     // Shadow samples
     Shader* shadowShader;
+    Shader* shadowCascadeShader;
     Shader* shadowPointShader;
     unsigned int depthMapsFBO[4];
     std::vector<Texture*> shadowMaps;
@@ -53,12 +54,13 @@ class Engine {
     std::vector<SceneObject*> meshObjects;
     
     private:
-    void UpdateGlobalUniforms(Shader* shader);
+    void UpdateGlobalUniforms();
     void RenderScene();
     void LoadObject2Buffers(SceneObject* object);
     void ClearBuffers();
     void RenderObject(SceneObject* object);
     void RenderMesh(Mesh* mesh);
+    glm::mat4 FitLight2Camera(glm::vec3 lightDir);
     void ShadowSetup();
     void ShadowCapture();
     void PBRcapture();

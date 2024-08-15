@@ -92,8 +92,8 @@ int main(int, char**){
     cerberusMat.SetMainFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
     cerberusMat.SetNormalFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga", NORM_MAP_NORM);
     cerberusMat.SetMetallicFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
-    cerberusMat.SetSmoothnessFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Raw/Cerberus_R.tga", SMOOTH_MAP_ROUGH);
-    // cerberusMat.SetAmbientOcclustionFile("meshes/Cerberus_by_Andrew_Maximov/Raw/Cerberus_R.tga");
+    cerberusMat.SetSmoothnessFile("meshes/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga", SMOOTH_MAP_ROUGH);
+    // cerberusMat.SetAmbientOcclustionFile("meshes/Cerberus_by_Andrew_Maximov/Raw/Cerberus_AO.tga");
     cerberusMat.Initalize();
     materials.push_back(&cerberusMat);
 
@@ -117,7 +117,7 @@ int main(int, char**){
     SceneObject planeObject = SceneObject(&plane, &defaultMat, "Plane");
     planeObject.SetPosition(glm::vec3(0.0f, -4.0f, 0.0f));
     planeObject.SetRotation(glm::vec3(-90.0f, 0.0f, 0.0f));
-    planeObject.SetScale(glm::vec3(6.0f, 6.0f, 1.0f));
+    planeObject.SetScale(glm::vec3(30.0f, 30.0f, 1.0f));
     scene.AddObject(&planeObject);
    
     

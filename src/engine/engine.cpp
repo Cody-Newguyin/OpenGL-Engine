@@ -44,11 +44,12 @@ void Engine::Render() {
     LoadObject2Buffers(scene->root);
     ShadowCapture();
     ResetViewport();
+    UpdateGlobalUniforms();
     RenderScene();
     ClearBuffers();
 }
 
-void Engine::UpdateGlobalUniforms(Shader* shader) {
+void Engine::UpdateGlobalUniforms() {
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
     glBufferSubData(GL_UNIFORM_BUFFER,   0, sizeof(glm::mat4), &camera.projection); 
     glBufferSubData(GL_UNIFORM_BUFFER,  64, sizeof(glm::mat4), &camera.view); 
@@ -127,9 +128,6 @@ void Engine::RenderObject(SceneObject* object) {
     // Update shader matrices to apply _transformations
     shader->SetMatrix("_transform", object->transform);
     
-    // Update global uniforms 
-    UpdateGlobalUniforms(shader);
-    
     // Finally draw the mesh
     RenderMesh(mesh);
 }
@@ -150,10 +148,13 @@ void Engine::RenderMesh(Mesh* mesh) {
 void Engine::ShadowSetup() {
     shadowShader = new Shader();
     shadowShader->Initialize("shaders/shadow_cast.vs", "shaders/shadow_cast.fs");
+    shadowCascadeShader = new Shader();
+    shadowCascadeShader->Initialize("shaders/shadow_cast.vs", "shaders/shadow_cast.fs", "shaders/shadow_cast.gs");
     shadowPointShader = new Shader();
     shadowPointShader->Initialize("shaders/point_shadow_cast.vs", "shaders/point_shadow_cast.fs");
     
     for (unsigned int i = 0; i < n_lights; i++) {
+        // Generate buffers for directional light shadows
         glGenFramebuffers(1, &depthMapsFBO[i]);
 
         Texture* shadowMap = new Texture();
@@ -165,11 +166,9 @@ void Engine::ShadowSetup() {
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
 
-    for (unsigned int i = 0; i < n_lights; i++) {
+        // Generate buffers for point light shadows
         glGenFramebuffers(1, &depthCubeMapsFBO[i]);
-
         Texture* depthMap = new Texture();
         depthMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT32);
         depthMaps.push_back(depthMap);
@@ -186,19 +185,79 @@ void Engine::ShadowSetup() {
     }
 }
 
+glm::mat4 Engine::FitLight2Camera(glm::vec3 lightDir) {
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 20.0f);
+    glm::mat4 frustum = glm::inverse(projection * camera.view);
+
+    glm::vec4 corners[8];
+    glm::vec4 boundingVertices[8] = {
+        {-1.0f,	-1.0f,	-1.0f,	1.0f},
+        {-1.0f,	-1.0f,	1.0f,	1.0f},
+        {-1.0f,	1.0f,	-1.0f,	1.0f},
+        {-1.0f,	1.0f,	1.0f,	1.0f},
+        {1.0f,	-1.0f,	-1.0f,	1.0f},
+        {1.0f,	-1.0f,	1.0f,	1.0f},
+        {1.0f,	1.0f,	-1.0f,	1.0f},
+        {1.0f,	1.0f,	1.0f,	1.0f}
+    };
+    for (unsigned int i = 0; i < 8; i++) {
+        corners[i] = frustum * boundingVertices[i];
+        corners[i] /= corners[i].w;
+    }
+    glm::vec3 center = glm::vec3(0, 0, 0);
+    for (unsigned int i = 0; i < 8; i++) {
+        center += glm::vec3(corners[i]);
+    }
+    center /= 8;
+
+    glm::mat4 lightView = glm::lookAt(center + lightDir, center, glm::vec3(0.0, 1.0, 0.0));
+
+    float minX = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float minY = std::numeric_limits<float>::max();
+    float maxY = std::numeric_limits<float>::lowest();
+    float minZ = std::numeric_limits<float>::max();
+    float maxZ = std::numeric_limits<float>::lowest();
+    for (unsigned int i = 0; i < 8; i++)
+    {
+        const auto trf = lightView * corners[i];
+        minX = std::min(minX, trf.x);
+        maxX = std::max(maxX, trf.x);
+        minY = std::min(minY, trf.y);
+        maxY = std::max(maxY, trf.y);
+        minZ = std::min(minZ, trf.z);
+        maxZ = std::max(maxZ, trf.z);
+    }
+
+    // Tune this parameter according to the scene
+    float zMult = 1.0f;
+    if (minZ < 0) {
+        minZ *= zMult;
+    } else {
+        minZ /= zMult;
+    }
+    if (maxZ < 0) {
+        maxZ /= zMult;
+    } else {
+        maxZ *= zMult;
+    }
+
+    glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+    // lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -15.0f, 20.0f);
+    return lightProjection * lightView;
+}
+
 void Engine::ShadowCapture() { 
     glCullFace(GL_FRONT);
 
     LightObject *light;
-    glm::mat4 lightProjection, lightView, lightSpaceMatrix, shadowProjection;
+    glm::mat4 lightSpaceMatrix, shadowProjection;
     glm::mat4 shadowTransforms[6];
-    lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -15.0f, 20.0f);
 
     for (int i = 0; i < scene->dirLights.size() && i < n_lights; i++) {
         light = scene->dirLights[i];
 
-        lightView = glm::lookAt(light->direction * 5.0f, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-        lightSpaceMatrix = lightProjection * lightView;
+        lightSpaceMatrix = FitLight2Camera(light->direction);
         light->spaceMatrix = lightSpaceMatrix;
 
         glViewport(0, 0, shadowMaps[i]->width, shadowMaps[i]->height);
