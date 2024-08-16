@@ -22,6 +22,9 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
     PBRcapture();
     ShadowSetup();
 
+    debugShader = new Shader();
+    debugShader->Initialize("shaders/debug_cascade.vs", "shaders/debug_cascade.fs");
+
     glGenBuffers(1, &globalUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
     glBufferData(GL_UNIFORM_BUFFER, 2048, NULL, GL_STATIC_DRAW);
@@ -46,6 +49,7 @@ void Engine::Render() {
     ResetViewport();
     UpdateGlobalUniforms();
     RenderScene();
+    // Debug();
     ClearBuffers();
 }
 
@@ -211,7 +215,7 @@ void Engine::ShadowSetup() {
 }
 
 glm::mat4 Engine::FitLight2Camera(glm::vec3 lightDir, float nearPlane, float farPlane) {
-    glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane - 1.0f, farPlane + 1.0f);
     glm::mat4 frustum = glm::inverse(projection * camera.view);
 
     glm::vec4 corners[8];
@@ -487,4 +491,96 @@ void Engine::ResetViewport() {
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
+}
+
+void Engine::Debug() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    debugShader->Use();
+    debugShader->SetMatrix("_projection", camera.projection);
+    debugShader->SetMatrix("_view", camera.view);
+
+    std::vector<GLuint> visualizerVAOs;
+    std::vector<GLuint> visualizerVBOs;
+    std::vector<GLuint> visualizerEBOs;
+    visualizerVAOs.resize(8);
+    visualizerEBOs.resize(8);
+    visualizerVBOs.resize(8);
+
+    const GLuint indices[] = {
+        0, 2, 3,
+        0, 3, 1,
+        4, 6, 2,
+        4, 2, 0,
+        5, 7, 6,
+        5, 6, 4,
+        1, 3, 7,
+        1, 7, 5,
+        6, 7, 3,
+        6, 3, 2,
+        1, 5, 4,
+        0, 1, 4
+    };
+
+    const glm::vec4 colors[] = {
+        {1.0, 0.0, 0.0, 0.5f},
+        {0.0, 1.0, 0.0, 0.5f},
+        {0.0, 0.0, 1.0, 0.5f},
+    };
+
+    for (int i = 0; i < 3; i++) {
+        glm::mat4 frustum = glm::inverse(scene->dirLights[0]->spaceMatrices[i]);
+
+        glm::vec4 corners[8];
+        glm::vec4 boundingVertices[8] = {
+            {-1.0f,	-1.0f,	-1.0f,	1.0f},
+            {-1.0f,	-1.0f,	1.0f,	1.0f},
+            {-1.0f,	1.0f,	-1.0f,	1.0f},
+            {-1.0f,	1.0f,	1.0f,	1.0f},
+            {1.0f,	-1.0f,	-1.0f,	1.0f},
+            {1.0f,	-1.0f,	1.0f,	1.0f},
+            {1.0f,	1.0f,	-1.0f,	1.0f},
+            {1.0f,	1.0f,	1.0f,	1.0f}
+        };
+        for (unsigned int j = 0; j < 8; j++) {
+            corners[j] = frustum * boundingVertices[j];
+            corners[j] /= corners[j].w;
+        }
+        std::vector<glm::vec3> vec3s;
+        for (const auto& v : corners)
+        {
+            vec3s.push_back(glm::vec3(v));
+        }
+
+        glGenVertexArrays(1, &visualizerVAOs[i]);
+        glGenBuffers(1, &visualizerVBOs[i]);
+        glGenBuffers(1, &visualizerEBOs[i]);
+
+        glBindVertexArray(visualizerVAOs[i]);
+
+        glBindBuffer(GL_ARRAY_BUFFER, visualizerVBOs[i]);
+        glBufferData(GL_ARRAY_BUFFER, vec3s.size() * sizeof(glm::vec3), &vec3s[0], GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, visualizerEBOs[i]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+        glBindVertexArray(visualizerVAOs[i]);
+        debugShader->SetVector("color", colors[i % 3]);
+        glDrawElements(GL_TRIANGLES, GLsizei(36), GL_UNSIGNED_INT, 0);
+
+        glDeleteBuffers(1, &visualizerVBOs[i]);
+        glDeleteBuffers(1, &visualizerEBOs[i]);
+        glDeleteVertexArrays(1, &visualizerVAOs[i]);
+
+        glBindVertexArray(0);
+    }
+
+    visualizerVAOs.clear();
+    visualizerEBOs.clear();
+    visualizerVBOs.clear();
+
+    glDisable(GL_BLEND);
 }

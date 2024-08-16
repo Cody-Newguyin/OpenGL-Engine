@@ -70,7 +70,9 @@ void Camera::ProcessInput(GLFWwindow* window) {
     lastX = xpos;
     lastY = ypos;
 
+    this->dirty = true;
     UpdateCameraVectors();
+    UpdateTransform();
 }
 
 void Camera::UpdateCameraVectors() { 

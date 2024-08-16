@@ -37,6 +37,7 @@ class Engine {
     Shader* shadowShader;
     Shader* shadowCascadeShader;
     Shader* shadowPointShader;
+    Shader* debugShader;
     unsigned int depthMapsFBO[4];
     std::vector<Texture*> shadowMaps;
     unsigned int ALTdepthMapsFBO[4];
@@ -72,6 +73,7 @@ class Engine {
     void Render2Texture(SceneObject* object, Texture* target);
     void Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned int mipLevel);
     void ResetViewport();
+    void Debug();
     
 };
 
