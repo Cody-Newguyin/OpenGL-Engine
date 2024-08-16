@@ -21,25 +21,30 @@ class Engine {
     Scene* scene;
     Camera camera;
 
+    // render settings
+    bool wireframe = false;
+    bool debug = true;
+    const int n_lights = 4; 
+    
     // PBR samples
     TextureCube* irrMap;
     TextureCube* prefilterMap;
     Texture* brdfLUTTexture;
 
     // Shadow samples
+    const int n_cascades = 3;
+    std::vector<float> planes{0.1f, 5.0f, 10.0f, 15.0f};
     Shader* shadowShader;
     Shader* shadowCascadeShader;
     Shader* shadowPointShader;
     unsigned int depthMapsFBO[4];
     std::vector<Texture*> shadowMaps;
+    unsigned int ALTdepthMapsFBO[4];
+    std::vector<Texture*> ALTshadowMaps;
     unsigned int depthCubeMapsFBO[4];
     std::vector<Texture*> depthMaps;
     std::vector<TextureCube*> shadowCubeMaps;
 
-    // render settings
-    bool wireframe = false;
-    bool debug = true;
-    const int n_lights = 4;
 
     public:
     Engine();
@@ -60,7 +65,7 @@ class Engine {
     void ClearBuffers();
     void RenderObject(SceneObject* object);
     void RenderMesh(Mesh* mesh);
-    glm::mat4 FitLight2Camera(glm::vec3 lightDir);
+    glm::mat4 FitLight2Camera(glm::vec3 lightDir, float nearPlane, float farPlane);
     void ShadowSetup();
     void ShadowCapture();
     void PBRcapture();

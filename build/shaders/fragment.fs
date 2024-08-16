@@ -28,6 +28,7 @@ uniform sampler2D _brdfLUT;
 
 // Shadow stuff
 uniform sampler2D _shadowMap[n_lights];
+uniform sampler2DArray _ALTshadowMap[n_lights];
 uniform samplerCube _shadowCubeMap[n_lights];
 
 uniform vec3 _color = vec3(1.0f);
@@ -68,7 +69,7 @@ Light CreatePointLight(vec3 pos, vec3 color) {
     return light;
 }
 
-float CalculateDirShadow(sampler2D shadowMap, vec4 shadowCoords, vec3 lightDir) {
+float CalculateDirShadow(sampler2DArray shadowMap, int layer, vec4 shadowCoords, vec3 lightDir) {
     vec3 coords = shadowCoords.xyz / shadowCoords.w;
     coords = coords * 0.5 + 0.5;
     float currentDepth = coords.z;
@@ -76,10 +77,10 @@ float CalculateDirShadow(sampler2D shadowMap, vec4 shadowCoords, vec3 lightDir) 
 
     // Soft shadows using PCF
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    vec2 texelSize = 1.0 / vec2(textureSize(shadowMap, 0));
     for(int x = -1; x <= 1; x++) {
         for(int y = -1; y <= 1; y++) {
-            float pcfDepth = texture(shadowMap, coords.xy + vec2(x, y) * texelSize).r; 
+            float pcfDepth = texture(shadowMap, vec3(coords.xy + vec2(x, y) * texelSize, layer)).r; 
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
         }    
     }
@@ -250,14 +251,27 @@ void main() {
 
     vec3 viewDir = normalize(_camPos - input.worldPos);
 
+    // Get cascade layer
+    vec4 posViewSpace = _view * vec4(input.worldPos, 1.0);
+    float depth = abs(posViewSpace.z);
+
+    int layer = n_cascades - 1;
+    for (int i = 0; i < n_cascades; i++) {
+        if (depth < _planes[i]) {
+            layer = i;
+            break;
+        }
+    }
+
     // Apply lights
     vec4 shadowCoords;
     Light light;
     vec3 color = vec3(0.0f);
     for (int i = 0; i < n_lights; i++) {
         shadowCoords = _shadowMatrix[i] * vec4(input.worldPos, 1.0);
+        shadowCoords = _lightSpaceMatrices[i * n_cascades + layer] * vec4(input.worldPos, 1.0);
         light = CreateDirLight(_dirlight_dir[i], _dirlight_color[i]);
-        color += BRDF_PBR(albedo, specularTint, smoothness, metallic, input.normal, viewDir, light) * (1.0 - CalculateDirShadow(_shadowMap[i], shadowCoords, light.dir));
+        color += BRDF_PBR(albedo, specularTint, smoothness, metallic, input.normal, viewDir, light) * (1.0 - CalculateDirShadow(_ALTshadowMap[i], layer, shadowCoords, light.dir));
     }
     for (int i = 0; i < n_lights; i++) {
         light = CreatePointLight(_pointlight_pos[0], _pointlight_color[0]);

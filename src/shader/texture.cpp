@@ -10,8 +10,8 @@ Texture::Texture() {
 void Texture::DefaultTexture(unsigned int width, unsigned int height, GLenum format, GLenum internalFormat) {
     // generate id for texture
     glGenTextures(1, &ID);
-    // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-    glBindTexture(GL_TEXTURE_2D, ID); 
+    // all upcoming target operations now have effect on this texture object
+    glBindTexture(target, ID); 
 
     this->mipmapEnabled = false;
     this->filterMin = GL_LINEAR;
@@ -19,16 +19,16 @@ void Texture::DefaultTexture(unsigned int width, unsigned int height, GLenum for
     this->wrapT = GL_CLAMP_TO_EDGE;
     this->internalFormat = internalFormat;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_FLOAT, 0);
+    glTexImage2D(target, 0, internalFormat, width, height, 0, format, GL_FLOAT, 0);
     if (mipmapEnabled) {
-        glGenerateMipmap(GL_TEXTURE_2D);
+        glGenerateMipmap(target);
     }
     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, wrapT);
     // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMin);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMax);
+    glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filterMin);
+    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filterMax);
 
     // unbind texture
     Unbind();
@@ -42,7 +42,7 @@ void Texture::LoadTexture(std::string filename, GLenum internalFormat, bool flip
     // generate id for texture
     glGenTextures(1, &ID);
     // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-    glBindTexture(GL_TEXTURE_2D, ID); 
+    glBindTexture(target, ID); 
     
     this->internalFormat = internalFormat;
 
@@ -66,16 +66,16 @@ void Texture::LoadTexture(std::string filename, GLenum internalFormat, bool flip
     else if (nrChannels == 4)
         format = GL_RGBA;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(target, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     if (mipmapEnabled) {
-        glGenerateMipmap(GL_TEXTURE_2D);
+        glGenerateMipmap(target);
     }
     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, wrapT);
     // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMin);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMax);
+    glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filterMin);
+    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filterMax);
 
     // unbind texture
     Unbind();
@@ -87,13 +87,47 @@ void Texture::LoadTexture(std::string filename, GLenum internalFormat, bool flip
     stbi_image_free(data);
 }
 
+void Texture::DefaultTextureArray(unsigned int width, unsigned int height, unsigned int depth, GLenum format, GLenum internalFormat) {
+    // generate id for texture
+    glGenTextures(1, &ID);
+    // all upcoming target operations now have effect on this texture object
+    this->target = GL_TEXTURE_2D_ARRAY;
+    glBindTexture(target, ID); 
+
+    this->mipmapEnabled = false;
+    this->filterMin = GL_LINEAR;
+    this->wrapS = GL_CLAMP_TO_BORDER;
+    this->wrapT = GL_CLAMP_TO_BORDER;
+    this->internalFormat = internalFormat;
+
+    glTexImage3D(target, 0, internalFormat, width, height, depth, 0, format, GL_FLOAT, 0);
+    if (mipmapEnabled) {
+        glGenerateMipmap(target);
+    }
+    // set the texture wrapping parameters
+    glTexParameteri(target, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(target, GL_TEXTURE_WRAP_T, wrapT);
+    // set texture filtering parameters
+    glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filterMin);
+    glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filterMax);
+    float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, bordercolor);
+
+    // unbind texture
+    Unbind();
+
+    // set dimensions only when texture was successfully set
+    this->width = width;
+    this->height = height;
+}
+
 void Texture::Bind(int unit) {
     if (unit >= 0) {
         glActiveTexture(GL_TEXTURE0 + unit);
     }
-    glBindTexture(GL_TEXTURE_2D, ID);
+    glBindTexture(target, ID);
 }
 
 void Texture::Unbind() {
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(target, 0);
 }

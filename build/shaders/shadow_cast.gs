@@ -1,9 +1,9 @@
-#version 330 core
+#version 400 core
     
 layout(triangles, invocations = 3) in;
 layout(triangle_strip, max_vertices = 3) out;
     
-uniform mat4 _lightSpaceMatrix[3];
+uniform mat4 _lightSpaceMatrices[3];
 
 void main()
 {          

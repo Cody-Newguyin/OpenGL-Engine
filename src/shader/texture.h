@@ -11,6 +11,7 @@ class Texture {
 
     // Texture Information
     // GLenum target = GL_TEXTURE_2D;
+    GLenum target = GL_TEXTURE_2D;
     GLenum internalFormat = GL_RGBA;
     GLenum format = GL_RGBA;
     GLenum type = GL_UNSIGNED_BYTE;
@@ -22,6 +23,7 @@ class Texture {
 
     unsigned int width = 0;
     unsigned int height = 0;
+    unsigned int depth = 0;
     unsigned int nrChannels = 0;
 
     public:
@@ -29,6 +31,7 @@ class Texture {
 
     void DefaultTexture(unsigned int width, unsigned int height, GLenum format, GLenum internalFormat);
     void LoadTexture(std::string filename, GLenum internalFormat, bool flipImage = false);
+    void DefaultTextureArray(unsigned int width, unsigned int height, unsigned int depth, GLenum format, GLenum internalFormat);
     void Bind(int unit);
     void Unbind();
 };
