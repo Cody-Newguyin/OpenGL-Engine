@@ -33,7 +33,7 @@ class Engine {
 
     // Shadow samples
     const int n_cascades = 3;
-    std::vector<float> planes{0.1f, 5.0f, 10.0f, 15.0f};
+    std::vector<float> planes{-5.0f, 5.0f, 20.0f, 40.0f};
     Shader* shadowShader;
     Shader* shadowCascadeShader;
     Shader* shadowPointShader;

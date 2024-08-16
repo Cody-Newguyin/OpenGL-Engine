@@ -75,6 +75,11 @@ float CalculateDirShadow(sampler2DArray shadowMap, int layer, vec4 shadowCoords,
     float currentDepth = coords.z;
     float bias = max(0.05 * (1.0 - dot(input.normal, lightDir)), 0.005);
 
+    // keep the shadow at 0.0 when outside the far_plane region of the lights frustum.
+    if (currentDepth > 1.0) {
+        return 0.0;
+    }
+
     // Soft shadows using PCF
     float shadow = 0.0;
     vec2 texelSize = 1.0 / vec2(textureSize(shadowMap, 0));
@@ -257,7 +262,7 @@ void main() {
 
     int layer = n_cascades - 1;
     for (int i = 0; i < n_cascades; i++) {
-        if (depth < _planes[i]) {
+        if (depth < _planes[i + 1]) {
             layer = i;
             break;
         }
@@ -284,4 +289,9 @@ void main() {
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / GAMMA));  
     FragColor = vec4(color, 1.0);
+
+    // if (layer == 0) color = vec3(1.0, 0.0, 0.0);
+    // if (layer == 1) color = vec3(0.0, 1.0, 0.0);
+    // if (layer == 2) color = vec3(0.0, 0.0, 1.0);
+    // FragColor = vec4(color, 1.0);
 }
