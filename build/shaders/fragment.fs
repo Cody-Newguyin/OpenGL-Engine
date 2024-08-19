@@ -262,7 +262,7 @@ void main() {
 
     int layer = n_cascades - 1;
     for (int i = 0; i < n_cascades; i++) {
-        if (depth < _planes[i + 1]) {
+        if (depth <= _planes[i + 1]) {
             layer = i;
             break;
         }
