@@ -16,7 +16,8 @@ Renderer
 - Physically based rendering
     - Diffuse integral, prefiltered environments, and BRDFlut
     - Multiple directional/point light
-    - Shadow mapping
+    - Shadow mapping for both
+    - Cascading shadow maps for directional lights
     - Image based lighting
 - Post-procesing
     - Gamma Correction
