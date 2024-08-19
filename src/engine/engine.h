@@ -8,6 +8,7 @@
 #include "camera/camera.h"
 #include "mesh/mesh.h"
 #include "mesh/sphere.h"
+#include "mesh/quad.h"
 #include "scene/scene.h"
 #include "scene/scene_object.h"
 #include "scene/background.h"
@@ -50,6 +51,11 @@ class Engine {
    
 
     private:
+    int scrWidth, scrHeight;
+    Shader* postShader;
+    Texture* FBTexture;
+    Quad* quad;
+    unsigned int FBO, RBO;
     unsigned int captureFBO;
     unsigned int captureRBO;
     unsigned int globalUBO;

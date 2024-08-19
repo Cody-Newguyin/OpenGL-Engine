@@ -12,6 +12,7 @@ Engine::Engine() {
 void Engine::Initialize(GLFWwindow* window, Scene* scene) {
     this->window = window;
     this->scene = scene;
+    glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
 
     camera.Initialize();
 
@@ -22,6 +23,23 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
     PBRcapture();
     ShadowSetup();
 
+    // Post processing stuff
+    quad = new Quad();
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    FBTexture = new Texture();
+    FBTexture->DefaultTexture(scrWidth, scrHeight, GL_RGB, GL_RGB);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FBTexture->ID, 0);
+
+    glGenRenderbuffers(1, & RBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, scrWidth, scrHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+    postShader = new Shader();
+    postShader->Initialize("shaders/screenquad.vs", "shaders/post.fs");
+    postShader->SetInt("_screen", 0);
+
+    // Setup Uniform buffer object
     glGenBuffers(1, &globalUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
     glBufferData(GL_UNIFORM_BUFFER, 2048, NULL, GL_STATIC_DRAW);
@@ -45,7 +63,15 @@ void Engine::Render() {
     ShadowCapture();
     ResetViewport();
     UpdateGlobalUniforms();
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    // Render Background
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     RenderScene();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    postShader->Use();
+    FBTexture->Bind(0);
+    RenderMesh(quad);
     ClearBuffers();
 }
 
@@ -444,7 +470,5 @@ void Engine::Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned 
 }
 
 void Engine::ResetViewport() {
-    int scrWidth, scrHeight;
-    glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
 }
