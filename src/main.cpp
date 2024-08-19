@@ -102,6 +102,12 @@ int main(int, char**){
     cerberus->SetScale(glm::vec3(0.05f, 0.05f, 0.05f));
     scene.AddObject(cerberus);
 
+    // objLoader.normType = NORM_MAP_NORM;
+    // objLoader.smoothType = SMOOTH_MAP_ROUGH;
+    // SceneObject* sponza = objLoader.ReadObjFile("meshes/sponza/sponza.obj", "sponza",false, true);
+    // sponza->SetScale(glm::vec3(0.005f, 0.005f, 0.005f));
+    // sponza->SetName("Sponza");
+    // scene.AddObject(sponza);
 
     SceneObject emptyObject = SceneObject("Empty");
     emptyObject.SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
@@ -156,7 +162,7 @@ int main(int, char**){
         cubeObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
         sphereObject.SetRotation((float)glfwGetTime() * glm::vec3(50.0f, 25.0f, 0.0f));
         emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
-
+        
         // Render
         engine.Render();
         guiHandler.Render();

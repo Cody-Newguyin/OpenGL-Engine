@@ -22,9 +22,6 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
     PBRcapture();
     ShadowSetup();
 
-    debugShader = new Shader();
-    debugShader->Initialize("shaders/debug_cascade.vs", "shaders/debug_cascade.fs");
-
     glGenBuffers(1, &globalUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
     glBufferData(GL_UNIFORM_BUFFER, 2048, NULL, GL_STATIC_DRAW);
@@ -71,13 +68,11 @@ void Engine::UpdateGlobalUniforms() {
         light = scene->dirLights[i];
         glBufferSubData(GL_UNIFORM_BUFFER, base + i * 16,                       sizeof(glm::vec3), &light->direction);
         glBufferSubData(GL_UNIFORM_BUFFER, base + (n_lights * 16) + i * 16,     sizeof(glm::vec3), light->GetRealColor());
-        glBufferSubData(GL_UNIFORM_BUFFER, base + (n_lights * (16 + 16)) + i * 64,  sizeof(glm::mat4), &light->spaceMatrix);
-    
         for (unsigned int j = 0; j < n_cascades; j++) {
-            glBufferSubData(GL_UNIFORM_BUFFER, base + (n_lights * (16 + 16 + 64)) + (i + j) * 64,  sizeof(glm::mat4), &light->spaceMatrices[j]);
+            glBufferSubData(GL_UNIFORM_BUFFER, base + (n_lights * (16 + 16)) + (i + j) * 64,  sizeof(glm::mat4), &light->spaceMatrices[j]);
         }
     }
-    base += n_lights * (16 + 16 + 64 + 64 * n_cascades);
+    base += n_lights * (16 + 16 + 64 * n_cascades);
     for (unsigned int i = 0; i < scene->pointLights.size() && i < n_lights; i++) {
         light = scene->pointLights[i];
         glBufferSubData(GL_UNIFORM_BUFFER, base + i * 16,                   sizeof(glm::vec3), &light->worldPos);
@@ -132,8 +127,6 @@ void Engine::RenderObject(SceneObject* object) {
     for (unsigned int i = 0; i < scene->dirLights.size() && i < n_lights; i++) { 
         shader->SetInt("_shadowMap[" + std::to_string(i) + "]", ++unit);
         shadowMaps[i]->Bind(unit);
-        shader->SetInt("_ALTshadowMap[" + std::to_string(i) + "]", ++unit);
-        ALTshadowMaps[i]->Bind(unit);
     }
     for (unsigned int i = 0; i < scene->pointLights.size() && i < n_lights; i++) { 
         shader->SetInt("_shadowCubeMap[" + std::to_string(i) + "]", ++unit);
@@ -161,36 +154,21 @@ void Engine::RenderMesh(Mesh* mesh) {
 }
 
 void Engine::ShadowSetup() {
-    shadowShader = new Shader();
-    shadowShader->Initialize("shaders/shadow_cast.vs", "shaders/shadow_cast.fs");
     shadowCascadeShader = new Shader();
     shadowCascadeShader->Initialize("shaders/shadow_cast_copy.vs", "shaders/shadow_cast.fs", "shaders/shadow_cast.gs");
     shadowPointShader = new Shader();
     shadowPointShader->Initialize("shaders/point_shadow_cast.vs", "shaders/point_shadow_cast.fs");
 
     for (unsigned int i = 0; i < n_lights; i++) {
-        // Generate buffers for directional light shadows
+        // Genereate alt buffers 
         glGenFramebuffers(1, &depthMapsFBO[i]);
 
         Texture* shadowMap = new Texture();
-        shadowMap->DefaultTexture(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
+        shadowMap->DefaultTextureArray(2048, 2048, n_cascades, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
         shadowMaps.push_back(shadowMap);
 
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFBO[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap->ID, 0);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // Genereate alt buffers 
-        glGenFramebuffers(1, &ALTdepthMapsFBO[i]);
-
-        Texture* ALTshadowMap = new Texture();
-        ALTshadowMap->DefaultTextureArray(2048, 2048, n_cascades, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT);
-        ALTshadowMaps.push_back(ALTshadowMap);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, ALTdepthMapsFBO[i]);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, ALTshadowMap->ID, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowMap->ID, 0);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -279,35 +257,15 @@ void Engine::ShadowCapture() {
     glCullFace(GL_FRONT);
 
     LightObject *light;
-    glm::mat4 lightSpaceMatrix, shadowProjection;
+    glm::mat4 shadowProjection;
     glm::mat4 lightSpaceMatrices[n_cascades];
     glm::mat4 shadowTransforms[6];
 
     for (int i = 0; i < scene->dirLights.size() && i < n_lights; i++) {
         light = scene->dirLights[i];
 
-        lightSpaceMatrix = FitLight2Camera(light->direction, planes[0], planes[1]);
-        light->spaceMatrix = lightSpaceMatrix;
-
         glViewport(0, 0, shadowMaps[i]->width, shadowMaps[i]->height);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFBO[i]);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        shadowShader->Use();
-        shadowShader->SetMatrix("_lightSpaceMatrix", lightSpaceMatrix);
-        for (unsigned int j = 0; j < meshObjects.size(); j++) {
-            if (meshObjects[j]->shadowCast) {
-                shadowShader->SetMatrix("_transform", meshObjects[j]->transform);
-                RenderMesh(meshObjects[j]->mesh);
-            }
-        }
-    }
-
-    for (int i = 0; i < scene->dirLights.size() && i < n_lights; i++) {
-        light = scene->dirLights[i];
-
-        glViewport(0, 0, ALTshadowMaps[i]->width, ALTshadowMaps[i]->height);
-        glBindFramebuffer(GL_FRAMEBUFFER, ALTdepthMapsFBO[i]);
         glClear(GL_DEPTH_BUFFER_BIT);
 
         shadowCascadeShader->Use();

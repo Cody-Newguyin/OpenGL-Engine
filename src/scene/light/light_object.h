@@ -21,7 +21,7 @@ class LightObject : public SceneObject {
     glm::vec3 direction;
     glm::mat4 spaceMatrix;
     // fix this
-    glm::mat4 spaceMatrices[3];
+    glm::mat4 spaceMatrices[16];
     
     public:
     LightObject(LIGHT_TYPE type, std::string name = "light");

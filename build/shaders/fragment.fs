@@ -27,8 +27,7 @@ uniform samplerCube _prefilterMap;
 uniform sampler2D _brdfLUT;
 
 // Shadow stuff
-uniform sampler2D _shadowMap[n_lights];
-uniform sampler2DArray _ALTshadowMap[n_lights];
+uniform sampler2DArray _shadowMap[n_lights];
 uniform samplerCube _shadowCubeMap[n_lights];
 
 uniform vec3 _color = vec3(1.0f);
@@ -273,10 +272,9 @@ void main() {
     Light light;
     vec3 color = vec3(0.0f);
     for (int i = 0; i < n_lights; i++) {
-        shadowCoords = _shadowMatrix[i] * vec4(input.worldPos, 1.0);
         shadowCoords = _lightSpaceMatrices[i * n_cascades + layer] * vec4(input.worldPos, 1.0);
         light = CreateDirLight(_dirlight_dir[i], _dirlight_color[i]);
-        color += BRDF_PBR(albedo, specularTint, smoothness, metallic, input.normal, viewDir, light) * (1.0 - CalculateDirShadow(_ALTshadowMap[i], layer, shadowCoords, light.dir));
+        color += BRDF_PBR(albedo, specularTint, smoothness, metallic, input.normal, viewDir, light) * (1.0 - CalculateDirShadow(_shadowMap[i], layer, shadowCoords, light.dir));
     }
     for (int i = 0; i < n_lights; i++) {
         light = CreatePointLight(_pointlight_pos[0], _pointlight_color[0]);

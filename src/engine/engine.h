@@ -32,16 +32,12 @@ class Engine {
     Texture* brdfLUTTexture;
 
     // Shadow samples
-    const int n_cascades = 3;
-    std::vector<float> planes{-5.0f, 10.0f, 20.0f, 40.0f};
-    Shader* shadowShader;
+    const int n_cascades = 4;
+    std::vector<float> planes{-1.0f, 10.0f, 20.0f, 40.0f, 60.0f};
     Shader* shadowCascadeShader;
     Shader* shadowPointShader;
-    Shader* debugShader;
     unsigned int depthMapsFBO[4];
     std::vector<Texture*> shadowMaps;
-    unsigned int ALTdepthMapsFBO[4];
-    std::vector<Texture*> ALTshadowMaps;
     unsigned int depthCubeMapsFBO[4];
     std::vector<Texture*> depthMaps;
     std::vector<TextureCube*> shadowCubeMaps;
