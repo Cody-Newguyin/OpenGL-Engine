@@ -4,9 +4,9 @@ ImGuiHandler::ImGuiHandler() {
 
 }
 
-void ImGuiHandler::Initialize(GLFWwindow *window, Engine *engine) {
+void ImGuiHandler::Initialize(GLFWwindow *window, Renderer *renderer) {
     this->window = window;
-    this->engine = engine;
+    this->renderer = renderer;
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -29,13 +29,13 @@ void ImGuiHandler::Newframe() {
 }
 
 void ImGuiHandler::Update() {
-    Scene *scene = engine->scene;
+    Scene *scene = renderer->scene;
     ImGuiIO& io = ImGui::GetIO();
     // ImGui::ShowDemoWindow();
 
     ImGui::Begin("Engine");
 
-    ImGui::Checkbox("Wireframe", &engine->wireframe);
+    ImGui::Checkbox("Wireframe", &renderer->wireframe);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     
     ImGui::SeparatorText("Lights");

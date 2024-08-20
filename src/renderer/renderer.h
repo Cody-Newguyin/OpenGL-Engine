@@ -5,6 +5,8 @@
 #include <glfw3.h>
 #include <vector>
 
+#include "renderer/render_target.h"
+#include "renderer/pbr.h"
 #include "camera/camera.h"
 #include "mesh/mesh.h"
 #include "mesh/sphere.h"
@@ -16,7 +18,9 @@
 #include "shader/shader.h"
 #include "shader/texture_cube.h"
 
-class Engine {
+class PBR;
+
+class Renderer {
     public:
     GLFWwindow* window;
     Scene* scene;
@@ -28,6 +32,7 @@ class Engine {
     const int n_lights = 4; 
     
     // PBR samples
+    PBR* pbr;
     TextureCube* irrMap;
     TextureCube* prefilterMap;
     Texture* brdfLUTTexture;
@@ -45,10 +50,11 @@ class Engine {
 
 
     public:
-    Engine();
+    Renderer();
     void Initialize(GLFWwindow* window, Scene* scene);
     void Render();
-   
+    void Render2Texture(SceneObject* object, Texture* target);
+    void Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned int mipLevel);
 
     private:
     int scrWidth, scrHeight;
@@ -71,9 +77,7 @@ class Engine {
     glm::mat4 FitLight2Camera(glm::vec3 lightDir, float nearPlane, float farPlane);
     void ShadowSetup();
     void ShadowCapture();
-    void PBRcapture();
-    void Render2Texture(SceneObject* object, Texture* target);
-    void Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned int mipLevel);
+
     void ResetViewport();
     
 };

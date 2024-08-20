@@ -1,15 +1,14 @@
-#include "engine/engine.h"
+#include "renderer/renderer.h"
 #include "log/log.h"
 #include "mesh/cube.h"
 #include "mesh/quad.h"
-#include "engine.h"
 #include <cfloat>
 
-Engine::Engine() {
+Renderer::Renderer() {
     camera = Camera();
 }
 
-void Engine::Initialize(GLFWwindow* window, Scene* scene) {
+void Renderer::Initialize(GLFWwindow* window, Scene* scene) {
     this->window = window;
     this->scene = scene;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
@@ -19,8 +18,9 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
     glGenFramebuffers(1, &captureFBO);
     glGenRenderbuffers(1, &captureRBO);
 
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);  
     scene->background = new Background();
-    PBRcapture();
+    pbr = new PBR(this);
     ShadowSetup();
 
     // Post processing stuff
@@ -33,8 +33,8 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
 
     glGenRenderbuffers(1, & RBO);
     glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, scrWidth, scrHeight);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, scrWidth, scrHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RBO);
     postShader = new Shader();
     postShader->Initialize("shaders/screenquad.vs", "shaders/post.fs");
     postShader->SetInt("_screen", 0);
@@ -46,36 +46,38 @@ void Engine::Initialize(GLFWwindow* window, Scene* scene) {
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, globalUBO);
 }
 
-void Engine::Render() {
+void Renderer::Render() {
     // Geometry buffer
     glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 
-    // Render Background
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
     // update camera
     camera.ProcessInput(window);
     camera.Update();
 
     scene->Update();
     LoadObject2Buffers(scene->root);
+
     ShadowCapture();
+
     ResetViewport();
+
     UpdateGlobalUniforms();
+
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    // Render Background
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     RenderScene();
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     postShader->Use();
     FBTexture->Bind(0);
     RenderMesh(quad);
+
     ClearBuffers();
 }
 
-void Engine::UpdateGlobalUniforms() {
+void Renderer::UpdateGlobalUniforms() {
     glBindBuffer(GL_UNIFORM_BUFFER, globalUBO);
     glBufferSubData(GL_UNIFORM_BUFFER,   0, sizeof(glm::mat4), &camera.projection); 
     glBufferSubData(GL_UNIFORM_BUFFER,  64, sizeof(glm::mat4), &camera.view); 
@@ -106,14 +108,14 @@ void Engine::UpdateGlobalUniforms() {
     }
 }
 
-void Engine::RenderScene() {
+void Renderer::RenderScene() {
     for (unsigned int i = 0; i < meshObjects.size(); i++) {
         RenderObject(meshObjects[i]);
     }
     RenderObject(scene->background);
 }
 
-void Engine::LoadObject2Buffers(SceneObject* object) {
+void Renderer::LoadObject2Buffers(SceneObject* object) {
     // check compenets and add em
     if (object->mesh) {
         meshObjects.push_back(object);
@@ -125,11 +127,11 @@ void Engine::LoadObject2Buffers(SceneObject* object) {
     }
 }
 
-void Engine::ClearBuffers() {
+void Renderer::ClearBuffers() {
     meshObjects.clear();
 }
 
-void Engine::RenderObject(SceneObject* object) {
+void Renderer::RenderObject(SceneObject* object) {
     Material *material = object->material;
     Mesh     *mesh     = object->mesh;
     Shader   *shader   = object->material->shader;
@@ -145,11 +147,11 @@ void Engine::RenderObject(SceneObject* object) {
 
     // Set Samplers
     shader->SetInt("_irrMap", unit);
-    irrMap->Bind(unit);
+    pbr->irrMap->Bind(unit);
     shader->SetInt("_prefilterMap", ++unit);
-    prefilterMap->Bind(unit);
+    pbr->prefilterMap->Bind(unit);
     shader->SetInt("_brdfLUT", ++unit);
-    brdfLUTTexture->Bind(unit);
+    pbr->brdfLUTTexture->Bind(unit);
     for (unsigned int i = 0; i < scene->dirLights.size() && i < n_lights; i++) { 
         shader->SetInt("_shadowMap[" + std::to_string(i) + "]", ++unit);
         shadowMaps[i]->Bind(unit);
@@ -166,7 +168,7 @@ void Engine::RenderObject(SceneObject* object) {
     RenderMesh(mesh);
 }
 
-void Engine::RenderMesh(Mesh* mesh) {
+void Renderer::RenderMesh(Mesh* mesh) {
     // Bind VAO
     glBindVertexArray(mesh->VAO);
     // Draw verticies
@@ -179,7 +181,7 @@ void Engine::RenderMesh(Mesh* mesh) {
     glBindVertexArray(0);
 }
 
-void Engine::ShadowSetup() {
+void Renderer::ShadowSetup() {
     shadowCascadeShader = new Shader();
     shadowCascadeShader->Initialize("shaders/shadow_cast_copy.vs", "shaders/shadow_cast.fs", "shaders/shadow_cast.gs");
     shadowPointShader = new Shader();
@@ -217,7 +219,7 @@ void Engine::ShadowSetup() {
     }
 }
 
-glm::mat4 Engine::FitLight2Camera(glm::vec3 lightDir, float nearPlane, float farPlane) {
+glm::mat4 Renderer::FitLight2Camera(glm::vec3 lightDir, float nearPlane, float farPlane) {
     glm::mat4 projection = glm::perspective(glm::radians(90.0f), 1.0f, nearPlane - 1.0f, farPlane + 1.0f);
     glm::mat4 frustum = glm::inverse(projection * camera.view);
 
@@ -279,7 +281,7 @@ glm::mat4 Engine::FitLight2Camera(glm::vec3 lightDir, float nearPlane, float far
     return lightProjection * lightView;
 }
 
-void Engine::ShadowCapture() { 
+void Renderer::ShadowCapture() { 
     glCullFace(GL_FRONT);
 
     LightObject *light;
@@ -348,58 +350,7 @@ void Engine::ShadowCapture() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Engine::PBRcapture() {
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);  
-
-    irrMap = new TextureCube();
-    irrMap->DefaultTextureCube(64, 64, GL_RGB, GL_RGB);
-
-    Shader* irrShader = new Shader();
-    irrShader->Initialize("shaders/cubemap.vs", "shaders/irradiance_capture.fs");
-
-    Material* irrCapture = new Material();
-    irrCapture->SetTextureCube("_envMap", scene->background->envMap);
-    irrCapture->SetShader(irrShader);
-    irrCapture->DepthCompare = GL_LEQUAL;
-
-    SceneObject envCube = SceneObject(new Cube(), irrCapture);
-    Render2CubeMap(&envCube, irrMap, 0);
-
-    prefilterMap = new TextureCube();
-    prefilterMap->filterMin = GL_LINEAR_MIPMAP_LINEAR;
-    prefilterMap->mipmapEnabled = true;
-    prefilterMap->DefaultTextureCube(256, 256, GL_RGB, GL_RGB);
-
-    Shader* prefilterShader = new Shader();
-    prefilterShader->Initialize("shaders/cubemap.vs", "shaders/prefilter_capture.fs");
-
-    Material* prefilterCapture = new Material();
-    prefilterCapture->SetTextureCube("_envMap", scene->background->envMap);
-    prefilterCapture->SetShader(prefilterShader);
-    prefilterCapture->DepthCompare = GL_LEQUAL;
-
-    envCube.material = prefilterCapture;
-    unsigned int maxMipLevels = 5;
-    for (unsigned int i = 0; i < maxMipLevels; i++) {
-        float roughness = (float)i / (float)(maxMipLevels - 1);
-        prefilterCapture->SetFloat("roughness", &roughness);
-        Render2CubeMap(&envCube, prefilterMap, i);
-    }
-
-    brdfLUTTexture = new Texture();
-    brdfLUTTexture->DefaultTexture(128, 128, GL_RG, GL_RG);
-
-    Shader* brdfShader = new Shader();
-    brdfShader->Initialize("shaders/screenquad.vs", "shaders/integrateBRDF.fs");
-
-    Material* brdfCapture = new Material();
-    brdfCapture->SetShader(brdfShader);
-
-    SceneObject brdfQuad = SceneObject(new Quad(), brdfCapture);
-    Render2Texture(&brdfQuad, brdfLUTTexture);
-}
-
-void Engine::Render2Texture(SceneObject* object, Texture* target) {
+void Renderer::Render2Texture(SceneObject* object, Texture* target) {
     Material *material = object->material;
     Mesh     *mesh     = object->mesh;
     Shader   *shader   = object->material->shader;
@@ -421,7 +372,7 @@ void Engine::Render2Texture(SceneObject* object, Texture* target) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Engine::Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned int mipLevel) {
+void Renderer::Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned int mipLevel) {
     // Render a cube with a texture then capture the results 6 times for each face
     // Results are stored in a framebuffer which is then stored in target cubemap
     Material *material = envCube->material;
@@ -469,6 +420,6 @@ void Engine::Render2CubeMap(SceneObject* envCube, TextureCube* target, unsigned 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Engine::ResetViewport() {
+void Renderer::ResetViewport() {
     glViewport(0, 0, scrWidth, scrHeight);
 }

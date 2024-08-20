@@ -39,8 +39,8 @@ int main(int, char**){
         return -1;
     }
     Scene scene = Scene();
-    Engine engine = Engine();
-    engine.Initialize(window, &scene);
+    Renderer renderer = Renderer();
+    renderer.Initialize(window, &scene);
     
     std::vector<BasicMaterial*> materials;
 
@@ -144,7 +144,7 @@ int main(int, char**){
 
     // Setup GUI
     ImGuiHandler guiHandler = ImGuiHandler();
-    guiHandler.Initialize(window, &engine);
+    guiHandler.Initialize(window, &renderer);
     guiHandler.materials = materials;
 
     // main loop
@@ -164,7 +164,7 @@ int main(int, char**){
         emptyObject.SetRotation((float)glfwGetTime() * glm::vec3(0.0f, 50.0f, 0.0f));
         
         // Render
-        engine.Render();
+        renderer.Render();
         guiHandler.Render();
 
         // swap double buffers
